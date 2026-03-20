@@ -1,4 +1,4 @@
--- UniNest LMS Database Schema
+-- Uninest LMS Database Schema
 -- Run this file against your MySQL database to set up the tables.
 
 CREATE DATABASE IF NOT EXISTS uninest

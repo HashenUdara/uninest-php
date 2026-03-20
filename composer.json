@@ -1,6 +1,6 @@
 {
   "name": "uninest/lms",
-  "description": "UniNest LMS — Plain PHP+MySQL Module-Based MVC Boilerplate",
+  "description": "Uninest LMS — Plain PHP+MySQL Module-Based MVC Boilerplate",
   "type": "project",
   "require": {
     "php": ">=8.1",
