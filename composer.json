@@ -13,6 +13,12 @@
     ],
     "start": [
       "@serve"
+    ],
+    "check:functions": [
+      "@php scripts/check_functions.php"
+    ],
+    "make:crud": [
+      "@php scripts/make_crud.php"
     ]
   },
   "autoload": {
