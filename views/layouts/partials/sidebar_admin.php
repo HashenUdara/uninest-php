@@ -1,15 +1,23 @@
+<?php
+$currentPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+$isSubjectCreate = $currentPath === '/subjects/create';
+$isSubjects = str_starts_with($currentPath, '/subjects') && !$isSubjectCreate;
+?>
 <nav class="sidebar-nav">
+    <div class="sidebar-section-label">Overview</div>
     <ul>
-        <li><a href="/dashboard" class="<?= is_current_url('/dashboard') ? 'active' : '' ?>">📊 Dashboard</a></li>
+        <li><a href="/dashboard" data-icon="DB" class="<?= is_current_url('/dashboard') ? 'active' : '' ?>"><span>Dashboard</span></a></li>
     </ul>
-    <div class="sidebar-section-label">Onboarding</div>
+
+    <div class="sidebar-section-label">Approvals</div>
     <ul>
-        <li><a href="/admin/batch-requests" class="<?= is_current_url('/admin/batch-requests') ? 'active' : '' ?>">🧾 Batch Requests</a></li>
-        <li><a href="/admin/student-requests" class="<?= is_current_url('/admin/student-requests') ? 'active' : '' ?>">✅ Student Requests</a></li>
+        <li><a href="/admin/batch-requests" data-icon="BR" class="<?= is_current_url('/admin/batch-requests') ? 'active' : '' ?>"><span>Batch Requests</span></a></li>
+        <li><a href="/admin/student-requests" data-icon="SR" class="<?= is_current_url('/admin/student-requests') ? 'active' : '' ?>"><span>Student Requests</span></a></li>
     </ul>
-    <div class="sidebar-section-label">Subject Management</div>
+
+    <div class="sidebar-section-label">Content</div>
     <ul>
-        <li><a href="/subjects" class="<?= is_current_url('/subjects') ? 'active' : '' ?>">📚 All Subjects</a></li>
-        <li><a href="/subjects/create" class="<?= is_current_url('/subjects/create') ? 'active' : '' ?>">➕ New Subject</a></li>
+        <li><a href="/subjects" data-icon="SB" class="<?= $isSubjects ? 'active' : '' ?>"><span>Subjects</span></a></li>
+        <li><a href="/subjects/create" data-icon="NW" class="<?= $isSubjectCreate ? 'active' : '' ?>"><span>New Subject</span></a></li>
     </ul>
 </nav>

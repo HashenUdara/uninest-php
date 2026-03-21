@@ -53,13 +53,13 @@
                             <td><small class="text-muted"><?= e($item['rejection_reason'] ?? '-') ?></small></td>
                             <td class="actions">
                                 <?php if ($item['status'] === 'pending'): ?>
-                                    <form method="POST" action="/admin/student-requests/<?= (int) $item['id'] ?>/approve" style="display:inline;">
+                                    <form method="POST" action="/admin/student-requests/<?= (int) $item['id'] ?>/approve" class="table-action-form">
                                         <?= csrf_field() ?>
                                         <button type="submit" class="btn btn-sm btn-primary">Approve</button>
                                     </form>
-                                    <form method="POST" action="/admin/student-requests/<?= (int) $item['id'] ?>/reject" style="display:inline;">
+                                    <form method="POST" action="/admin/student-requests/<?= (int) $item['id'] ?>/reject" class="table-action-form">
                                         <?= csrf_field() ?>
-                                        <input type="text" name="rejection_reason" placeholder="Reason (optional)" style="margin-bottom:6px; width:180px;">
+                                        <input type="text" name="rejection_reason" placeholder="Reason (optional)" class="table-action-form-input">
                                         <button type="submit" class="btn btn-sm btn-danger">Reject</button>
                                     </form>
                                 <?php endif; ?>

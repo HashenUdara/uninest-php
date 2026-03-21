@@ -1,10 +1,15 @@
+<?php
+$currentPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+?>
 <nav class="sidebar-nav">
+    <div class="sidebar-section-label">Overview</div>
     <ul>
-        <li><a href="/dashboard" class="<?= is_current_url('/dashboard') ? 'active' : '' ?>">📊 Dashboard</a></li>
-        <li><a href="/dashboard/subjects" class="<?= is_current_url('/dashboard/subjects') ? 'active' : '' ?>">📚 Browse Subjects</a></li>
+        <li><a href="/dashboard" data-icon="DB" class="<?= is_current_url('/dashboard') ? 'active' : '' ?>"><span>Dashboard</span></a></li>
+        <li><a href="/dashboard/subjects" data-icon="SB" class="<?= str_starts_with($currentPath, '/dashboard/subjects') ? 'active' : '' ?>"><span>Browse Subjects</span></a></li>
     </ul>
+
     <div class="sidebar-section-label">Coordinator</div>
     <ul>
-        <li><a href="/dashboard" class="<?= is_current_url('/dashboard') ? 'active' : '' ?>">📋 Coordinator Panel</a></li>
+        <li><a href="/dashboard" data-icon="CP" class="<?= is_current_url('/dashboard') ? 'active' : '' ?>"><span>Coordinator Panel</span></a></li>
     </ul>
 </nav>

@@ -1,87 +1,88 @@
-<div class="dashboard-header">
-    <h1>Moderator Dashboard</h1>
-    <p>
-        Welcome back, <?= e($user['name']) ?>!
-        <span class="badge badge-warning">Moderator</span>
-        <?php if (!empty($batch['batch_code'])): ?>
-            <span class="badge badge-info"><?= e($batch['batch_code']) ?></span>
+<?php
+$batchCode = trim((string) ($batch['batch_code'] ?? ''));
+$batchStatus = trim((string) ($batch['status'] ?? 'pending'));
+$statusLabel = ucfirst($batchStatus ?: 'pending');
+?>
+
+<section class="dash-hero">
+    <p class="dash-eyebrow">Moderator Workspace</p>
+    <h1>Run your batch with clarity and controlled access.</h1>
+    <p class="dash-copy">
+        Welcome back, <?= e($user['name']) ?>.
+        <?php if ($batchCode !== ''): ?>
+            You are managing <span class="inline-strong"><?= e($batchCode) ?></span>.
+        <?php else: ?>
+            Your batch is still in onboarding review.
         <?php endif; ?>
     </p>
-</div>
+    <div class="dash-action-row">
+        <a href="/moderator/join-requests" class="btn btn-primary">Review Join Requests</a>
+        <a href="/subjects/create" class="btn btn-outline">Create Subject</a>
+        <a href="/subjects" class="btn btn-outline">Manage Subjects</a>
+    </div>
+</section>
 
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-number"><?= (int) $subject_count ?></div>
-        <div class="stat-label">Subjects in My Batch</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-number"><?= (int) $pending_student_requests ?></div>
-        <div class="stat-label">Pending Join Requests</div>
-    </div>
-    <div class="stat-card accent">
-        <div class="stat-number"><a href="/subjects/create" style="color:inherit;text-decoration:none;">+</a></div>
-        <div class="stat-label">Add New Subject</div>
-    </div>
-</div>
+<section class="dash-kpi-grid">
+    <article class="kpi-card">
+        <span class="kpi-label">Subjects in Batch</span>
+        <strong><?= (int) $subject_count ?></strong>
+        <p>Total subjects available for your students.</p>
+    </article>
+    <article class="kpi-card">
+        <span class="kpi-label">Pending Join Requests</span>
+        <strong><?= (int) $pending_student_requests ?></strong>
+        <p>Students waiting for approval.</p>
+    </article>
+    <article class="kpi-card">
+        <span class="kpi-label">Batch Status</span>
+        <strong><?= e($statusLabel) ?></strong>
+        <p><?= $batchCode !== '' ? 'Batch ID: ' . e($batchCode) : 'Batch ID will appear after approval.' ?></p>
+    </article>
+</section>
 
-<div class="card">
-    <div class="card-header">
-        <h2>Invite Students</h2>
-    </div>
-    <div class="card-body">
+<section class="dash-grid-2">
+    <article class="dash-panel">
+        <header class="dash-panel-header">
+            <h2>Student Invite</h2>
+        </header>
         <?php if (!empty($invite_link) && !empty($invite_qr_url)): ?>
-            <p>Share this invite link or QR code with students so the batch ID auto-fills during signup.</p>
+            <p class="text-muted">Share this link or QR so students can join with the correct batch ID pre-filled.</p>
             <div class="invite-grid">
                 <div>
                     <p class="text-muted">
-                        <strong>Batch ID:</strong> <span class="badge"><?= e($batch['batch_code']) ?></span>
+                        <strong>Batch ID:</strong>
+                        <span class="badge badge-info"><?= e($batchCode) ?></span>
                     </p>
                     <div class="invite-link-box">
                         <input type="text" id="invite-link-input" value="<?= e($invite_link) ?>" readonly>
-                        <button type="button" class="btn btn-sm btn-primary" id="copy-invite-btn">Copy</button>
+                        <button type="button" class="btn btn-sm btn-primary" id="copy-invite-btn">Copy Link</button>
                     </div>
-                    <a href="<?= e($invite_link) ?>" target="_blank" rel="noopener">Open invite link</a>
+                    <a href="<?= e($invite_link) ?>" target="_blank" rel="noopener">Open Invite URL</a>
                 </div>
                 <div class="invite-qr">
-                    <img src="<?= e($invite_qr_url) ?>" alt="Invite QR code for student signup">
+                    <img src="<?= e($invite_qr_url) ?>" alt="Batch invite QR code">
                 </div>
             </div>
         <?php else: ?>
-            <p class="text-muted">Batch invite details will appear after admin approves your batch and assigns a batch ID.</p>
+            <p class="text-muted">Invite link appears once your batch is approved and a batch ID is issued.</p>
         <?php endif; ?>
-    </div>
-</div>
+    </article>
 
-<div class="card">
-    <div class="card-header">
-        <h2>Batch Operations</h2>
-        <a href="/moderator/join-requests" class="btn btn-sm btn-primary">Review Join Requests</a>
-    </div>
-    <div class="card-body">
-        <p>Manage student access to your batch and keep session content updated.</p>
-        <div class="quick-actions">
-            <a href="/moderator/join-requests" class="btn btn-outline">Student Join Requests</a>
-            <a href="/subjects" class="btn btn-outline">Manage Batch Subjects</a>
-        </div>
-    </div>
-</div>
-
-<div class="card">
-    <div class="card-header">
-        <h2>Recent Batch Subjects</h2>
-        <a href="/subjects" class="btn btn-sm btn-primary">Manage All</a>
-    </div>
-    <div class="card-body">
+    <article class="dash-panel">
+        <header class="dash-panel-header">
+            <h2>Recent Batch Subjects</h2>
+            <a href="/subjects" class="btn btn-sm btn-outline">Manage All</a>
+        </header>
         <?php if (empty($subjects)): ?>
-            <p class="text-muted">No subjects in your batch yet. <a href="/subjects/create">Create one</a>.</p>
+            <p class="text-muted">No subjects yet. <a href="/subjects/create">Create your first subject</a>.</p>
         <?php else: ?>
             <table class="table">
                 <thead>
                     <tr>
                         <th>Code</th>
-                        <th>Subject Name</th>
+                        <th>Subject</th>
                         <th>Credits</th>
-                        <th>Actions</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -90,16 +91,14 @@
                             <td><span class="badge"><?= e($subject['code']) ?></span></td>
                             <td><?= e($subject['name']) ?></td>
                             <td><?= (int) $subject['credits'] ?></td>
-                            <td>
-                                <a href="/subjects/<?= $subject['id'] ?>/edit" class="btn btn-sm btn-outline">Edit</a>
-                            </td>
+                            <td><a href="/subjects/<?= (int) $subject['id'] ?>/edit" class="btn btn-sm btn-outline">Edit</a></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
         <?php endif; ?>
-    </div>
-</div>
+    </article>
+</section>
 
 <script>
     (function () {
@@ -112,7 +111,7 @@
                 await navigator.clipboard.writeText(input.value);
                 button.textContent = 'Copied';
                 setTimeout(() => {
-                    button.textContent = 'Copy';
+                    button.textContent = 'Copy Link';
                 }, 1500);
             } catch (e) {
                 input.focus();
@@ -120,7 +119,7 @@
                 document.execCommand('copy');
                 button.textContent = 'Copied';
                 setTimeout(() => {
-                    button.textContent = 'Copy';
+                    button.textContent = 'Copy Link';
                 }, 1500);
             }
         });

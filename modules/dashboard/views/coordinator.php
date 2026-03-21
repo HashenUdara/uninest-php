@@ -1,53 +1,49 @@
-<div class="dashboard-header">
-    <h1>Coordinator Dashboard</h1>
-    <p>Welcome back, <?= e($user['name']) ?>! <span class="badge badge-info">Subject Coordinator</span></p>
-</div>
+<section class="dash-hero">
+    <p class="dash-eyebrow">Coordinator Workspace</p>
+    <h1>Oversee subject quality across moderator teams.</h1>
+    <p class="dash-copy">Welcome back, <?= e($user['name']) ?>. Track subject consistency and align moderators on peer-learning standards.</p>
+</section>
 
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-number"><?= count($subjects) ?></div>
-        <div class="stat-label">Available Subjects</div>
-    </div>
-</div>
+<section class="dash-kpi-grid">
+    <article class="kpi-card">
+        <span class="kpi-label">Available Subjects</span>
+        <strong><?= count($subjects) ?></strong>
+        <p>Subject inventory currently visible to coordinator role.</p>
+    </article>
+</section>
 
-<!-- Coordinator-specific panel -->
-<div class="card">
-    <div class="card-header">
-        <h2>📋 Coordinator Panel</h2>
-    </div>
-    <div class="card-body">
-        <p>As a subject coordinator, you can view all subjects and coordinate with moderators for updates.</p>
-    </div>
-</div>
+<section class="dash-panel">
+    <header class="dash-panel-header">
+        <h2>Coordinator Notes</h2>
+    </header>
+    <p class="text-muted">Use this space to review subject quality and coordinate changes with moderators before curriculum updates.</p>
+</section>
 
-<!-- Student-inherited view -->
-<div class="card">
-    <div class="card-header">
+<section class="dash-panel">
+    <header class="dash-panel-header">
         <h2>All Subjects</h2>
-        <a href="/dashboard/subjects" class="btn btn-sm btn-outline">View All</a>
-    </div>
-    <div class="card-body">
-        <?php if (empty($subjects)): ?>
-            <p class="text-muted">No subjects available yet.</p>
-        <?php else: ?>
-            <table class="table">
-                <thead>
+        <a href="/dashboard/subjects" class="btn btn-sm btn-outline">View Full List</a>
+    </header>
+    <?php if (empty($subjects)): ?>
+        <p class="text-muted">No subjects available yet.</p>
+    <?php else: ?>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Subject</th>
+                    <th>Credits</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($subjects as $subject): ?>
                     <tr>
-                        <th>Code</th>
-                        <th>Subject Name</th>
-                        <th>Credits</th>
+                        <td><span class="badge"><?= e($subject['code']) ?></span></td>
+                        <td><?= e($subject['name']) ?></td>
+                        <td><?= (int) $subject['credits'] ?></td>
                     </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($subjects as $subject): ?>
-                        <tr>
-                            <td><span class="badge"><?= e($subject['code']) ?></span></td>
-                            <td><?= e($subject['name']) ?></td>
-                            <td><?= (int) $subject['credits'] ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        <?php endif; ?>
-    </div>
-</div>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    <?php endif; ?>
+</section>

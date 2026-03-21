@@ -52,7 +52,7 @@
                             <td><?= e($subject['creator_name'] ?? 'Unknown') ?></td>
                             <td class="actions">
                                 <a href="/subjects/<?= $subject['id'] ?>/edit" class="btn btn-sm btn-outline">Edit</a>
-                                <form method="POST" action="/subjects/<?= $subject['id'] ?>/delete" style="display:inline;" onsubmit="return confirm('Delete this subject?');">
+                                <form method="POST" action="/subjects/<?= $subject['id'] ?>/delete" class="table-action-form" onsubmit="return confirm('Delete this subject?');">
                                     <?= csrf_field() ?>
                                     <button type="submit" class="btn btn-sm btn-danger">Delete</button>
                                 </form>

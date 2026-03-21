@@ -1,11 +1,18 @@
+<?php
+$currentPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+$isSubjectCreate = $currentPath === '/subjects/create';
+$isSubjects = str_starts_with($currentPath, '/subjects') && !$isSubjectCreate;
+?>
 <nav class="sidebar-nav">
+    <div class="sidebar-section-label">Overview</div>
     <ul>
-        <li><a href="/dashboard" class="<?= is_current_url('/dashboard') ? 'active' : '' ?>">📊 Dashboard</a></li>
-        <li><a href="/moderator/join-requests" class="<?= is_current_url('/moderator/join-requests') ? 'active' : '' ?>">👥 Join Requests</a></li>
+        <li><a href="/dashboard" data-icon="DB" class="<?= is_current_url('/dashboard') ? 'active' : '' ?>"><span>Dashboard</span></a></li>
+        <li><a href="/moderator/join-requests" data-icon="JR" class="<?= str_starts_with($currentPath, '/moderator/join-requests') ? 'active' : '' ?>"><span>Join Requests</span></a></li>
     </ul>
-    <div class="sidebar-section-label">Subject Management</div>
+
+    <div class="sidebar-section-label">Content</div>
     <ul>
-        <li><a href="/subjects" class="<?= is_current_url('/subjects') ? 'active' : '' ?>">📚 My Batch Subjects</a></li>
-        <li><a href="/subjects/create" class="<?= is_current_url('/subjects/create') ? 'active' : '' ?>">➕ New Subject</a></li>
+        <li><a href="/subjects" data-icon="SB" class="<?= $isSubjects ? 'active' : '' ?>"><span>Batch Subjects</span></a></li>
+        <li><a href="/subjects/create" data-icon="NW" class="<?= $isSubjectCreate ? 'active' : '' ?>"><span>New Subject</span></a></li>
     </ul>
 </nav>
