@@ -312,17 +312,24 @@ function onboarding_approve_student_request(int $requestId, int $reviewerId, str
             return false;
         }
 
-        $student = db_fetch('SELECT id, batch_id FROM users WHERE id = ? FOR UPDATE', [(int) $request['student_user_id']]);
+        $student = db_fetch('SELECT id, batch_id, first_approved_batch_id FROM users WHERE id = ? FOR UPDATE', [(int) $request['student_user_id']]);
         if (!$student) {
             $pdo->rollBack();
             return false;
         }
 
         $existingBatchId  = (int) ($student['batch_id'] ?? 0);
+        $lockedBatchId    = (int) ($student['first_approved_batch_id'] ?? 0);
         $requestedBatchId = (int) $request['requested_batch_id'];
 
-        // Batch reassignment is not allowed once a student has an approved batch.
-        if ($existingBatchId > 0 && $existingBatchId !== $requestedBatchId) {
+        // Batch reassignment is not allowed once a student has a locked approved batch.
+        if ($lockedBatchId > 0 && $lockedBatchId !== $requestedBatchId) {
+            $pdo->rollBack();
+            return false;
+        }
+
+        // Backward compatibility for pre-lock records.
+        if ($lockedBatchId <= 0 && $existingBatchId > 0 && $existingBatchId !== $requestedBatchId) {
             $pdo->rollBack();
             return false;
         }
@@ -339,8 +346,11 @@ function onboarding_approve_student_request(int $requestId, int $reviewerId, str
         );
 
         db_query(
-            'UPDATE users SET batch_id = ? WHERE id = ? AND batch_id IS NULL',
-            [$requestedBatchId, (int) $student['id']]
+            'UPDATE users
+             SET batch_id = ?,
+                 first_approved_batch_id = COALESCE(first_approved_batch_id, ?)
+             WHERE id = ?',
+            [$requestedBatchId, $requestedBatchId, (int) $student['id']]
         );
 
         $pdo->commit();

@@ -21,6 +21,7 @@ function onboarding_status(): void
         'role'         => user_role(),
         'batch'        => null,
         'request'      => null,
+        'locked_batch' => null,
         'universities' => universities_active(),
     ];
 
@@ -28,6 +29,10 @@ function onboarding_status(): void
         $data['batch'] = onboarding_find_moderator_batch((int) auth_id());
     } elseif (user_role() === 'student') {
         $data['request'] = onboarding_find_student_request((int) auth_id());
+        $lockedBatchId = (int) ($user['first_approved_batch_id'] ?? 0);
+        if ($lockedBatchId > 0) {
+            $data['locked_batch'] = onboarding_batch_by_id($lockedBatchId);
+        }
     } else {
         redirect('/dashboard');
     }
@@ -118,6 +123,17 @@ function onboarding_student_resubmit(): void
     $batch = onboarding_find_batch_by_code($batchCode);
     if (!$batch) {
         flash('error', 'Invalid or inactive batch ID.');
+        flash_old_input();
+        redirect('/onboarding');
+    }
+
+    $lockedBatchId = (int) (auth_user()['first_approved_batch_id'] ?? 0);
+    if ($lockedBatchId > 0 && (int) $batch['id'] !== $lockedBatchId) {
+        $lockedBatch = onboarding_batch_by_id($lockedBatchId);
+        $lockedBatchCode = trim((string) ($lockedBatch['batch_code'] ?? ''));
+        flash('error', $lockedBatchCode !== ''
+            ? 'You can only reapply to your original batch: ' . $lockedBatchCode . '.'
+            : 'You can only reapply to your original batch.');
         flash_old_input();
         redirect('/onboarding');
     }

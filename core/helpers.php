@@ -207,7 +207,7 @@ function auth_user(): ?array
 function auth_user_by_id(int $id): ?array
 {
     return db_fetch(
-        'SELECT id, name, email, role, academic_year, university_id, batch_id, created_at, updated_at FROM users WHERE id = ?',
+        'SELECT id, name, email, role, academic_year, university_id, batch_id, first_approved_batch_id, created_at, updated_at FROM users WHERE id = ?',
         [$id]
     );
 }
@@ -325,7 +325,7 @@ function smtp_send_email(string $toEmail, string $subject, string $textBody): bo
     stream_set_timeout($socket, $timeout);
 
     $heloHost = parse_url((string) config('app.url', 'http://localhost'), PHP_URL_HOST) ?: 'localhost';
-    $fromName = (string) config('app.name', 'UniNest');
+    $fromName = (string) config('app.name', 'Uninest');
 
     try {
         if (!smtp_expect_code($socket, [220])) return false;

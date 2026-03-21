@@ -5,7 +5,7 @@ Treat this as the project contract.
 
 ## 1) Project Context
 
-- Product: UniNest Kuppi Platform (peer learning for Sri Lankan university students).
+- Product: Uninest Kuppi Platform (peer learning for Sri Lankan university students).
 - Stack: Plain PHP (function-based), MySQL, server-rendered views, no framework.
 - Architecture: Module folders with global functions loaded at bootstrap.
 - Current onboarding model is approval-based (admin + moderator approvals).
@@ -39,6 +39,7 @@ composer check:functions
 ```
 
 The checker validates:
+
 - duplicate global function names,
 - module prefix violations,
 - missing route handler functions.
@@ -76,6 +77,7 @@ Default protected pattern:
 ## 6) Data Model Rules
 
 Primary tables:
+
 - `users`
 - `universities`
 - `batches`
@@ -84,12 +86,14 @@ Primary tables:
 - `password_reset_tokens`
 
 Non-negotiable integrity rules:
+
 - `subjects.batch_id` is required.
 - `batch_code` is unique.
 - One primary moderator per batch (`moderator_user_id` unique).
 - One join-request row per student (`student_user_id` unique in `student_batch_requests`).
 
 When changing DB schema:
+
 - Update `database/schema.sql` first (authoritative source).
 - Keep foreign keys consistent with existing delete policies.
 
@@ -129,6 +133,7 @@ composer make:crud -- --module=announcements --table=announcements --field=title
 ```
 
 Generator output:
+
 - `modules/<module>/models.php`
 - `modules/<module>/controllers.php`
 - `modules/<module>/views/index.php`
@@ -137,6 +142,7 @@ Generator output:
 - optional route block append to `routes.php`
 
 After generation:
+
 1. adjust model field mapping to real table columns,
 2. add/adjust authorization logic,
 3. run `composer check:functions`,
@@ -153,6 +159,7 @@ After generation:
 ## 12) Definition of Done
 
 A change is complete when:
+
 1. business rules still hold,
 2. route -> handler mapping is valid,
 3. function checker passes,

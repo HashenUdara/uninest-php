@@ -19,6 +19,7 @@ function auth_create_user(array $data): string
         'academic_year' => $data['academic_year'] ?? null,
         'university_id' => $data['university_id'] ?? null,
         'batch_id'      => $data['batch_id'] ?? null,
+        'first_approved_batch_id' => $data['first_approved_batch_id'] ?? null,
     ]);
 }
 

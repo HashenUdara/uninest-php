@@ -55,6 +55,15 @@ route('GET',  '/subjects/{id}/edit',    'subjects_edit_form',     ['middleware_a
 route('POST', '/subjects/{id}',         'subjects_update_action', ['middleware_auth', 'middleware_onboarding_complete', fn() => middleware_role('moderator')]);
 route('POST', '/subjects/{id}/delete',  'subjects_delete_action', ['middleware_auth', 'middleware_onboarding_complete', fn() => middleware_role('moderator')]);
 
+// Students management (admin + moderator scoped actions)
+route('GET',  '/students',              'students_index',         ['middleware_auth', 'middleware_onboarding_complete', fn() => middleware_role('moderator')]);
+route('GET',  '/students/create',       'students_create_form',   ['middleware_auth', fn() => middleware_exact_role('admin')]);
+route('POST', '/students',              'students_store',         ['middleware_auth', fn() => middleware_exact_role('admin')]);
+route('GET',  '/students/{id}/edit',    'students_edit_form',     ['middleware_auth', fn() => middleware_exact_role('admin')]);
+route('POST', '/students/{id}',         'students_update_action', ['middleware_auth', fn() => middleware_exact_role('admin')]);
+route('POST', '/students/{id}/delete',  'students_delete_action', ['middleware_auth', fn() => middleware_exact_role('admin')]);
+route('POST', '/students/{id}/remove',  'students_remove_action', ['middleware_auth', 'middleware_onboarding_complete', fn() => middleware_exact_role('moderator')]);
+
 // Moderator join-request approvals
 route('GET',  '/moderator/join-requests',              'moderator_join_requests_index',   ['middleware_auth', 'middleware_onboarding_complete', fn() => middleware_exact_role('moderator')]);
 route('POST', '/moderator/join-requests/{id}/approve', 'moderator_join_request_approve',  ['middleware_auth', 'middleware_onboarding_complete', fn() => middleware_exact_role('moderator')]);

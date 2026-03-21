@@ -5,6 +5,7 @@
     <div class="dash-action-row">
         <a href="/admin/batch-requests" class="btn btn-primary">Review Batch Requests</a>
         <a href="/admin/student-requests" class="btn btn-outline">Review Student Requests</a>
+        <a href="/students" class="btn btn-outline">Manage Students</a>
         <a href="/subjects" class="btn btn-outline">Manage Subjects</a>
     </div>
 </section>
@@ -62,6 +63,8 @@
         <div class="dash-action-grid">
             <a href="/admin/batch-requests" class="btn btn-primary">Open Batch Queue</a>
             <a href="/admin/student-requests" class="btn btn-outline">Open Student Queue</a>
+            <a href="/students/create" class="btn btn-outline">Add New Student</a>
+            <a href="/students" class="btn btn-outline">View Students</a>
             <a href="/subjects/create" class="btn btn-outline">Add New Subject</a>
             <a href="/subjects" class="btn btn-outline">View Subject Catalog</a>
         </div>

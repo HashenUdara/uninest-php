@@ -101,6 +101,10 @@
         </div>
     <?php endif; ?>
 <?php elseif ($role === 'student'): ?>
+    <?php
+    $lockedBatchCode = trim((string) ($locked_batch['batch_code'] ?? ''));
+    $hasLockedBatch = $lockedBatchCode !== '';
+    ?>
     <?php if (!$request): ?>
         <div class="card">
             <div class="card-body">
@@ -140,7 +144,15 @@
                 <h2>Join Request Rejected</h2>
             </div>
             <div class="card-body">
-                <p class="text-muted">Update your batch ID and resubmit the request.</p>
+                <?php if ($hasLockedBatch): ?>
+                    <p class="text-muted">You can only reapply to your original batch after removal.</p>
+                    <p class="text-muted">
+                        <strong>Allowed Batch ID:</strong>
+                        <span class="badge"><?= e($lockedBatchCode) ?></span>
+                    </p>
+                <?php else: ?>
+                    <p class="text-muted">Update your batch ID and resubmit the request.</p>
+                <?php endif; ?>
                 <?php if (!empty($request['rejection_reason'])): ?>
                     <div class="alert alert-warning"><?= e($request['rejection_reason']) ?></div>
                 <?php endif; ?>
@@ -150,7 +162,7 @@
 
                     <div class="form-group">
                         <label for="batch_code">Active Batch ID</label>
-                        <input type="text" id="batch_code" name="batch_code" value="<?= old('batch_code', $request['batch_code']) ?>" placeholder="e.g. BATCH-AB12CD" required maxlength="20">
+                        <input type="text" id="batch_code" name="batch_code" value="<?= old('batch_code', $hasLockedBatch ? $lockedBatchCode : $request['batch_code']) ?>" placeholder="e.g. BATCH-AB12CD" required maxlength="20" <?= $hasLockedBatch ? 'readonly' : '' ?>>
                     </div>
 
                     <div class="form-actions">

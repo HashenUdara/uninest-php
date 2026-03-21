@@ -2,6 +2,8 @@
 $currentPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 $isSubjectCreate = $currentPath === '/subjects/create';
 $isSubjects = str_starts_with($currentPath, '/subjects') && !$isSubjectCreate;
+$isStudentCreate = $currentPath === '/students/create';
+$isStudents = str_starts_with($currentPath, '/students') && !$isStudentCreate;
 ?>
 <nav class="sidebar-nav">
     <div class="sidebar-section-label">Overview</div>
@@ -19,5 +21,7 @@ $isSubjects = str_starts_with($currentPath, '/subjects') && !$isSubjectCreate;
     <ul>
         <li><a href="/subjects" data-icon="SB" class="<?= $isSubjects ? 'active' : '' ?>"><span>Subjects</span></a></li>
         <li><a href="/subjects/create" data-icon="NW" class="<?= $isSubjectCreate ? 'active' : '' ?>"><span>New Subject</span></a></li>
+        <li><a href="/students" data-icon="ST" class="<?= $isStudents ? 'active' : '' ?>"><span>Students</span></a></li>
+        <li><a href="/students/create" data-icon="NS" class="<?= $isStudentCreate ? 'active' : '' ?>"><span>New Student</span></a></li>
     </ul>
 </nav>
