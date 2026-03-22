@@ -13,6 +13,12 @@
   --dash-success-soft: #e8f7ef;
   --dash-warning-soft: #fff6e3;
   --dash-danger-soft: #fff0f0;
+  --dash-surface: #e5ecf6;
+  --dash-surface-hover: #dbe5f2;
+  --dash-surface-panel: #f7f9fc;
+  --dash-surface-panel-hover: #f0f4f9;
+  --dash-surface-brand: rgba(var(--dash-brand-rgb), 0.2);
+  --dash-surface-brand-hover: rgba(var(--dash-brand-rgb), 0.26);
 }
 
 .dashboard-body {
@@ -244,8 +250,8 @@
   width: 42px;
   height: 42px;
   border-radius: 11px;
-  border: 1px solid var(--dash-stroke);
-  background: #fff;
+  border: 0;
+  background: var(--dash-surface);
   color: var(--dash-text);
   font-size: 1.05rem;
 }
@@ -288,17 +294,16 @@
   min-height: 34px;
   padding: 0 11px;
   border-radius: 9px;
-  border: 1px solid var(--dash-stroke);
+  border: 0;
   color: var(--dash-muted);
-  background: #fff;
+  background: var(--dash-surface);
   font-size: 0.78rem;
   font-weight: 500;
 }
 
 .topbar-link:hover {
   color: var(--dash-text);
-  border-color: #bbc8db;
-  background: #fafdff;
+  background: var(--dash-surface-hover);
 }
 
 .topbar-user-chip {
@@ -363,43 +368,46 @@
   font-size: 0.78rem;
   letter-spacing: 0.015em;
   padding: 8px 13px;
+  background: var(--dash-surface);
+  color: #1f2937;
 }
 
 .dashboard-body .btn:hover {
   transform: none;
   box-shadow: none;
+  background: var(--dash-surface-hover);
+  color: #111827;
 }
 
 .dashboard-body .btn-primary {
   border: 0;
-  color: #fff;
-  background: var(--dash-brand);
+  color: var(--dash-brand-dark);
+  background: var(--dash-surface-brand);
 }
 
 .dashboard-body .btn-primary:hover {
-  background: var(--dash-brand-dark);
-  color: #fff;
+  background: var(--dash-surface-brand-hover);
+  color: var(--dash-brand-dark);
 }
 
 .dashboard-body .btn-outline {
-  border-color: #d7deea;
+  border: 0;
   color: var(--dash-text);
-  background: #fff;
+  background: var(--dash-surface);
 }
 
 .dashboard-body .btn-outline:hover {
   color: var(--dash-text);
-  border-color: #c5cedc;
-  background: #f8fafc;
+  background: var(--dash-surface-hover);
 }
 
 .dash-hero {
   position: relative;
   border-radius: 14px;
   padding: 24px 26px;
-  background: var(--dash-card);
+  background: var(--dash-surface-panel);
   color: var(--dash-text);
-  border: 1px solid var(--dash-stroke);
+  border: 0;
   overflow: hidden;
 }
 
@@ -419,7 +427,7 @@
   width: 110px;
   height: 110px;
   border-radius: 16px;
-  border: 1px solid #edf1f6;
+  border: 0;
   background: repeating-linear-gradient(
     -45deg,
     #f9fbff,
@@ -486,18 +494,16 @@
 }
 
 .kpi-card {
-  border: 1px solid var(--dash-stroke);
+  border: 0;
   border-radius: 12px;
-  background: var(--dash-card);
+  background: var(--dash-surface-panel);
   padding: 14px 16px;
   transition:
-    border-color 0.18s ease,
     background-color 0.18s ease;
 }
 
 .kpi-card:hover {
-  border-color: #cfd7e4;
-  background: #fcfdff;
+  background: var(--dash-surface-panel-hover);
 }
 
 .kpi-label {
@@ -532,9 +538,9 @@
 
 .dash-panel,
 .dashboard-body .card {
-  border: 1px solid var(--dash-stroke);
+  border: 0;
   border-radius: 14px;
-  background: var(--dash-card);
+  background: var(--dash-surface-panel);
   overflow: hidden;
 }
 
@@ -548,7 +554,8 @@
 
 .dashboard-body .card-header {
   padding: 13px 16px;
-  border-bottom: 1px solid var(--dash-stroke);
+  border-bottom: 0;
+  background: var(--dash-surface-hover);
 }
 
 .dashboard-body .card-body {
@@ -586,9 +593,9 @@
 }
 
 .dash-list li {
-  border: 1px solid var(--dash-stroke);
+  border: 0;
   border-radius: 10px;
-  background: #fafbfd;
+  background: var(--dash-surface);
   padding: 10px 12px;
   display: flex;
   justify-content: space-between;
@@ -621,9 +628,9 @@
 }
 
 .subject-tile {
-  border: 1px solid var(--dash-stroke);
+  border: 0;
   border-radius: 10px;
-  background: #ffffff;
+  background: var(--dash-surface-panel);
   padding: 11px 12px;
   display: grid;
   gap: 6px;
@@ -772,49 +779,44 @@
   border-radius: 999px;
   display: inline-grid;
   place-items: center;
-  border: 1px solid #d5deea;
-  background: #fbfcfe;
+  border: 0;
+  background: var(--dash-surface);
   color: #0f172a;
   padding: 0;
   cursor: pointer;
   text-decoration: none;
   transition:
     background-color 0.16s ease,
-    border-color 0.16s ease,
     color 0.16s ease;
 }
 
 .table-icon-btn:hover {
-  background: #f2f6fc;
-  border-color: #c6d3e4;
+  background: var(--dash-surface-hover);
   color: #0f172a;
 }
 
 .table-icon-btn:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(var(--dash-brand-rgb), 0.18);
+  box-shadow: none;
+  background: var(--dash-surface-hover);
 }
 
 .table-icon-btn.is-danger {
   color: #b4233d;
-  background: #fff6f7;
-  border-color: #eccfd6;
+  background: #feeff2;
 }
 
 .table-icon-btn.is-danger:hover {
-  background: #ffeef1;
-  border-color: #e5b8c3;
+  background: #fde5eb;
 }
 
 .table-icon-btn.is-success {
   color: #0f766e;
-  background: #f2fbf9;
-  border-color: #cde8e4;
+  background: #eaf8f5;
 }
 
 .table-icon-btn.is-success:hover {
-  background: #e7f8f4;
-  border-color: #b6ddd7;
+  background: #def3ee;
 }
 
 .table-action-form {
@@ -877,9 +879,9 @@
 
 .dashboard-body .page-header {
   margin-bottom: 0;
-  border: 1px solid var(--dash-stroke);
+  border: 0;
   border-radius: 16px;
-  background: linear-gradient(135deg, #f5f7fb 0%, #edf1f7 100%);
+  background: linear-gradient(135deg, #f7f9fd 0%, #eef2f8 100%);
   padding: 24px 26px;
   display: flex;
   justify-content: space-between;
