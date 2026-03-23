@@ -29,6 +29,8 @@ Treat this as the project contract.
   - `auth_*` in `modules/auth/*`
   - `dashboard_*` in `modules/dashboard/*`
   - `students_*` in `modules/students/*`
+  - `batches_*` in `modules/batches/*`
+  - `moderators_*` in `modules/moderators/*`
 - Legacy onboarding exceptions currently allowed:
   - `onboarding_*`, `admin_*`, `moderator_*`, `university_*`, `universities_*`
 - New code should prefer strict module prefixing, even inside onboarding.
@@ -61,18 +63,22 @@ Default protected pattern:
 ## 5) Onboarding Business Rules (Do Not Break)
 
 - Public signup roles: `student`, `moderator` only.
+- Operational role hierarchy is: `student < coordinator < moderator`.
+- `admin` is a separate control role (provisioned internally), not part of onboarding flow.
 - Moderator signup creates a pending batch request.
 - Admin approves/rejects moderator batch request.
 - On approval:
   - batch becomes `approved`,
   - immutable `batch_code` is assigned (`BATCH-XXXXXX` style),
   - moderator `users.batch_id` is set.
+- On rejected moderator batch requests, only the primary batch owner (`batches.moderator_user_id`) can resubmit.
 - Student signup requires active approved `batch_code`.
 - Student signup creates pending join request.
 - Moderator (or admin override) approves/rejects student join request.
-- Student can access batch content only after approval.
+- Student can access batch content only when join request is `approved` and batch status is `approved`.
 - Student batch reassignment after first approved assignment is blocked.
 - `users.first_approved_batch_id` is the immutable lock source for this rule once set.
+- If a student is removed from a batch, resubmission is allowed only for their locked batch (`first_approved_batch_id`).
 - Pending/rejected users can log in but must be gated through `/onboarding`.
 - Admin bypasses onboarding gate.
 
@@ -91,7 +97,9 @@ Non-negotiable integrity rules:
 
 - `subjects.batch_id` is required.
 - `batch_code` is unique.
-- One primary moderator per batch (`moderator_user_id` unique).
+- Each batch has exactly one primary moderator owner (`batches.moderator_user_id`).
+- A moderator can own at most one batch (`batches.moderator_user_id` unique).
+- Multiple moderators may be assigned to the same batch via `users.batch_id`.
 - One join-request row per student (`student_user_id` unique in `student_batch_requests`).
 - `users.first_approved_batch_id` becomes immutable once first approved assignment is recorded.
 
@@ -110,8 +118,37 @@ When changing DB schema:
 - Admin:
   - unrestricted access for approvals and cross-batch management.
   - has full student CRUD access from admin flows.
+  - has full moderator CRUD access from admin provisioning flows.
+  - has full batch CRUD access from admin provisioning flows.
 
 Never introduce queries that bypass batch scoping for non-admin users.
+Use `middleware_exact_role('admin')` for admin provisioning routes.
+
+## 7.1) Admin Provisioning Route Groups
+
+- Student management:
+  - `GET /students`
+  - `GET /students/create`
+  - `POST /students`
+  - `GET /students/{id}/edit`
+  - `POST /students/{id}`
+  - `POST /students/{id}/delete`
+- Moderator scoped student removal:
+  - `POST /students/{id}/remove` (moderator own-batch only)
+- Moderator management:
+  - `GET /admin/moderators`
+  - `GET /admin/moderators/create`
+  - `POST /admin/moderators`
+  - `GET /admin/moderators/{id}/edit`
+  - `POST /admin/moderators/{id}`
+  - `POST /admin/moderators/{id}/delete`
+- Batch management:
+  - `GET /admin/batches`
+  - `GET /admin/batches/create`
+  - `POST /admin/batches`
+  - `GET /admin/batches/{id}/edit`
+  - `POST /admin/batches/{id}`
+  - `POST /admin/batches/{id}/delete`
 
 ## 8) Auth and Password Reset Rules
 
@@ -158,6 +195,7 @@ After generation:
 - Do not rename existing handlers casually; routes depend on function strings.
 - Do not remove onboarding checks from protected routes.
 - Do not weaken role middleware.
+- Do not allow batch deletion if any user is locked to it through `users.first_approved_batch_id`.
 - Do not introduce direct SQL using untrusted input without bound params.
 - Do not add duplicate global helper names.
 
