@@ -18,7 +18,9 @@ $isAuthPage = in_array($requestPath, ['/login', '/register', '/forgot-password',
     <?php if (!$isAuthPage): ?>
         <header class="main-header">
             <div class="container">
-                <a href="/" class="logo"><?= e(config('app.name')) ?></a>
+                <a href="/" class="logo" aria-label="<?= e(config('app.name')) ?> Home">
+                    <img src="<?= asset('img/black-logo.png') ?>" alt="<?= e(config('app.name')) ?>" class="logo-image">
+                </a>
                 <nav class="main-nav">
                     <?php if (auth_check()): ?>
                         <a href="/dashboard">Dashboard</a>

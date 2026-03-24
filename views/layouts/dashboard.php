@@ -37,9 +37,8 @@ if ($initials === '') {
         <aside class="sidebar" id="app-sidebar" aria-label="Dashboard navigation">
             <div class="sidebar-header">
                 <a href="/dashboard" class="sidebar-brand">
-                    <span class="sidebar-brand-mark" aria-hidden="true"></span>
+                    <img src="<?= asset('img/black-logo.png') ?>" alt="<?= e(config('app.name')) ?>" class="sidebar-brand-logo">
                     <span class="sidebar-brand-text">
-                        <strong><?= e(config('app.name')) ?></strong>
                         <small>Kuppi Workspace</small>
                     </span>
                 </a>

@@ -1,8 +1,7 @@
 <div class="auth-layout">
     <aside class="auth-visual">
         <a href="/" class="auth-brand" aria-label="<?= e(config('app.name')) ?> Home">
-            <span class="auth-brand-mark" aria-hidden="true"></span>
-            <span class="auth-brand-text">Logo</span>
+            <img src="<?= asset('img/white-logo.png') ?>" alt="<?= e(config('app.name')) ?>" class="auth-brand-logo">
         </a>
 
         <div class="auth-quote">

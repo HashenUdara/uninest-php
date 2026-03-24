@@ -11,6 +11,9 @@
 </head>
 <body>
     <div class="error-page">
+        <a href="/" class="error-logo-link" aria-label="<?= e(config('app.name')) ?> Home">
+            <img src="<?= asset('img/black-logo.png') ?>" alt="<?= e(config('app.name')) ?>" class="error-logo">
+        </a>
         <h1><?= $code ?></h1>
         <p><?= e($message) ?></p>
         <a href="/" class="btn btn-primary">Go Home</a>

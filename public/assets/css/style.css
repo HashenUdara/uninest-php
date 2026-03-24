@@ -357,10 +357,15 @@ img {
 }
 
 .logo {
-  font-size: 1.25rem;
-  font-weight: 560;
-  color: var(--color-primary);
+  display: inline-flex;
+  align-items: center;
   text-decoration: none;
+}
+
+.logo-image {
+  display: block;
+  width: auto;
+  height: 34px;
 }
 
 .main-nav {
@@ -499,29 +504,16 @@ img {
   width: fit-content;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  color: #fff;
-  font-family: var(--font-family);
-  font-size: 1.875rem;
-  font-weight: 620;
-  letter-spacing: -0.02em;
 }
 
 .auth-brand:hover {
-  color: #fff;
   opacity: 0.92;
 }
 
-.auth-brand-mark {
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
-  background:
-    radial-gradient(circle at 30% 30%, #fff 0 4px, transparent 5px),
-    radial-gradient(circle at 70% 30%, #fff 0 4px, transparent 5px),
-    radial-gradient(circle at 50% 70%, #fff 0 4px, transparent 5px);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  flex-shrink: 0;
+.auth-brand-logo {
+  display: block;
+  width: auto;
+  height: 44px;
 }
 
 .auth-quote p {
@@ -1068,6 +1060,19 @@ img {
   padding: 40px;
 }
 
+.error-logo-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+
+.error-logo {
+  display: block;
+  width: auto;
+  height: 42px;
+}
+
 .error-page h1 {
   font-size: 6rem;
   font-weight: 560;
@@ -1111,7 +1116,11 @@ img {
   }
 
   .auth-brand {
-    font-size: 1.4rem;
+    line-height: 1;
+  }
+
+  .auth-brand-logo {
+    height: 36px;
   }
 
   .auth-quote p {

@@ -69,37 +69,11 @@
   color: var(--dash-text);
 }
 
-.sidebar-brand-mark {
-  width: 34px;
+.sidebar-brand-logo {
+  width: auto;
   height: 34px;
-  border-radius: 10px;
-  border: 1px solid rgba(var(--dash-brand-rgb), 0.22);
-  background:
-    radial-gradient(
-      circle at 28% 28%,
-      var(--dash-brand) 0 3px,
-      transparent 4px
-    ),
-    radial-gradient(
-      circle at 72% 30%,
-      var(--dash-brand) 0 3px,
-      transparent 4px
-    ),
-    radial-gradient(
-      circle at 50% 72%,
-      var(--dash-brand) 0 3px,
-      transparent 4px
-    ),
-    #f8fbff;
-  flex-shrink: 0;
-}
-
-.sidebar-brand-text strong {
   display: block;
-  font-family: var(--font-family);
-  font-size: 1.06rem;
-  font-weight: 500;
-  letter-spacing: -0.01em;
+  flex-shrink: 0;
 }
 
 .sidebar-brand-text small {
