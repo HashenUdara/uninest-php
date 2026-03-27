@@ -45,6 +45,165 @@ function subjects_all_for_batch(int $batchId): array
     );
 }
 
+function subjects_year_options_for_batch(int $batchId): array
+{
+    if ($batchId <= 0) {
+        return [];
+    }
+
+    $rows = db_fetch_all(
+        "SELECT DISTINCT academic_year
+         FROM subjects
+         WHERE batch_id = ?
+         ORDER BY academic_year DESC",
+        [$batchId]
+    );
+
+    return array_map(
+        static fn(array $row): int => (int) $row['academic_year'],
+        $rows
+    );
+}
+
+function subjects_semester_options_for_batch(int $batchId): array
+{
+    if ($batchId <= 0) {
+        return [];
+    }
+
+    $rows = db_fetch_all(
+        "SELECT DISTINCT semester
+         FROM subjects
+         WHERE batch_id = ?
+         ORDER BY semester ASC",
+        [$batchId]
+    );
+
+    return array_map(
+        static fn(array $row): int => (int) $row['semester'],
+        $rows
+    );
+}
+
+function subjects_latest_term_for_batch(int $batchId): ?array
+{
+    if ($batchId <= 0) {
+        return null;
+    }
+
+    $row = db_fetch(
+        "SELECT academic_year, semester
+         FROM subjects
+         WHERE batch_id = ?
+         ORDER BY academic_year DESC, semester DESC
+         LIMIT 1",
+        [$batchId]
+    );
+
+    if (!$row) {
+        return null;
+    }
+
+    return [
+        'academic_year' => (int) $row['academic_year'],
+        'semester' => (int) $row['semester'],
+    ];
+}
+
+function subjects_terms_for_batch(int $batchId): array
+{
+    if ($batchId <= 0) {
+        return [];
+    }
+
+    return db_fetch_all(
+        "SELECT DISTINCT academic_year, semester
+         FROM subjects
+         WHERE batch_id = ?
+         ORDER BY academic_year DESC, semester DESC",
+        [$batchId]
+    );
+}
+
+function subjects_student_filters_sql(array $filters, array &$params): string
+{
+    $conditions = [];
+
+    $year = isset($filters['year']) ? (int) $filters['year'] : 0;
+    if ($year > 0) {
+        $conditions[] = 's.academic_year = ?';
+        $params[] = $year;
+    }
+
+    $semester = isset($filters['semester']) ? (int) $filters['semester'] : 0;
+    if ($semester > 0) {
+        $conditions[] = 's.semester = ?';
+        $params[] = $semester;
+    }
+
+    $status = trim((string) ($filters['status'] ?? ''));
+    if ($status !== '') {
+        $conditions[] = 's.status = ?';
+        $params[] = $status;
+    }
+
+    $query = trim((string) ($filters['q'] ?? ''));
+    if ($query !== '') {
+        $conditions[] = '(s.code LIKE ? OR s.name LIKE ?)';
+        $params[] = '%' . $query . '%';
+        $params[] = '%' . $query . '%';
+    }
+
+    if (empty($conditions)) {
+        return '';
+    }
+
+    return ' AND ' . implode(' AND ', $conditions);
+}
+
+function subjects_student_list_for_batch(int $batchId, array $filters, int $limit, int $offset): array
+{
+    if ($batchId <= 0) {
+        return [];
+    }
+
+    $params = [$batchId];
+    $filtersSql = subjects_student_filters_sql($filters, $params);
+    $limit = max(1, $limit);
+    $offset = max(0, $offset);
+
+    return db_fetch_all(
+        "SELECT s.*, b.batch_code, b.name AS batch_name, u.name AS creator_name,
+                (SELECT COUNT(*) FROM subject_coordinators sc WHERE sc.subject_id = s.id) AS coordinators_count
+         FROM subjects s
+         INNER JOIN batches b ON b.id = s.batch_id
+         LEFT JOIN users u ON u.id = s.created_by
+         WHERE s.batch_id = ?{$filtersSql}
+         ORDER BY s.academic_year DESC, s.semester DESC, s.code ASC, s.name ASC
+         LIMIT {$limit} OFFSET {$offset}",
+        $params
+    );
+}
+
+function subjects_student_count_for_batch(int $batchId, array $filters): int
+{
+    if ($batchId <= 0) {
+        return 0;
+    }
+
+    $params = [$batchId];
+    $filtersSql = subjects_student_filters_sql($filters, $params);
+
+    $row = db_fetch(
+        "SELECT COUNT(*) AS cnt
+         FROM subjects s
+         WHERE s.batch_id = ?{$filtersSql}",
+        $params
+    );
+
+    return (int) ($row['cnt'] ?? 0);
+}
+
 function subjects_all_for_coordinator(int $coordinatorUserId): array
 {
     return db_fetch_all(

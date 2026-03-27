@@ -360,7 +360,76 @@ function subjects_coordinator_update_action(string $id): void
 function subjects_student_list(): void
 {
     $batchId = (int) (auth_user()['batch_id'] ?? 0);
-    $subjects = subjects_all_for_batch($batchId);
+    $termTabs = subjects_terms_for_batch($batchId);
+    $statusOptions = subjects_allowed_statuses();
+    $latestTerm = !empty($termTabs)
+        ? [
+            'academic_year' => (int) $termTabs[0]['academic_year'],
+            'semester' => (int) $termTabs[0]['semester'],
+        ]
+        : null;
 
-    view('subjects::student_list', ['subjects' => $subjects], 'dashboard');
+    $yearRaw = trim((string) request_input('year', ''));
+    $semesterRaw = trim((string) request_input('semester', ''));
+    $statusRaw = trim((string) request_input('status', ''));
+    $queryRaw = trim((string) request_input('q', ''));
+
+    $requestedYear = ctype_digit($yearRaw) ? (int) $yearRaw : null;
+    $requestedSemester = ctype_digit($semesterRaw) ? (int) $semesterRaw : null;
+    $activeTerm = null;
+
+    if ($requestedYear !== null && $requestedSemester !== null) {
+        foreach ($termTabs as $term) {
+            if ((int) $term['academic_year'] === $requestedYear && (int) $term['semester'] === $requestedSemester) {
+                $activeTerm = [
+                    'academic_year' => $requestedYear,
+                    'semester' => $requestedSemester,
+                ];
+                break;
+            }
+        }
+    }
+
+    if ($activeTerm === null && $latestTerm !== null) {
+        $activeTerm = $latestTerm;
+    }
+
+    $yearFilter = $activeTerm['academic_year'] ?? null;
+    $semesterFilter = $activeTerm['semester'] ?? null;
+    $statusFilter = in_array($statusRaw, $statusOptions, true) ? $statusRaw : null;
+    $queryFilter = substr($queryRaw, 0, 80);
+
+    $filters = [
+        'year' => $yearFilter,
+        'semester' => $semesterFilter,
+        'status' => $statusFilter,
+        'q' => $queryFilter,
+    ];
+
+    $perPage = 12;
+    $page = max(1, (int) request_input('page', 1));
+    $totalSubjects = subjects_student_count_for_batch($batchId, $filters);
+    $totalPages = max(1, (int) ceil($totalSubjects / $perPage));
+    if ($page > $totalPages) {
+        $page = $totalPages;
+    }
+
+    $subjects = subjects_student_list_for_batch($batchId, $filters, $perPage, ($page - 1) * $perPage);
+
+    view('subjects::student_list', [
+        'subjects' => $subjects,
+        'term_tabs' => $termTabs,
+        'active_term' => $activeTerm,
+        'status_options' => $statusOptions,
+        'filters' => [
+            'year' => $yearFilter !== null ? (string) $yearFilter : '',
+            'semester' => $semesterFilter !== null ? (string) $semesterFilter : '',
+            'status' => $statusFilter ?? '',
+            'q' => $queryFilter,
+        ],
+        'total_subjects' => $totalSubjects,
+        'page' => $page,
+        'total_pages' => $totalPages,
+        'per_page' => $perPage,
+    ], 'dashboard');
 }

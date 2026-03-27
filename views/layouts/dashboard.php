@@ -38,9 +38,6 @@ if ($initials === '') {
             <div class="sidebar-header">
                 <a href="/dashboard" class="sidebar-brand">
                     <img src="<?= asset('img/black-logo.png') ?>" alt="<?= e(config('app.name')) ?>" class="sidebar-brand-logo">
-                    <span class="sidebar-brand-text">
-                        <small>Kuppi Workspace</small>
-                    </span>
                 </a>
                 <span class="role-badge role-<?= e($role) ?>"><?= e($roleLabel) ?></span>
             </div>
