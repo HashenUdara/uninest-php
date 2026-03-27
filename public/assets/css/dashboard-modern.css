@@ -1049,7 +1049,11 @@
 .dashboard-body .resource-interactions-card .card-body,
 .dashboard-body .resource-comments-card .card-body {
   display: grid;
-  gap: 12px;
+  gap: 14px;
+  background: #fff;
+  border: 1px solid #dbe4f0;
+  border-radius: 16px;
+  box-shadow: none;
 }
 
 .dashboard-body .resource-interactions-card h3,
@@ -1063,15 +1067,15 @@
 .dashboard-body .resource-review-layout {
   display: grid;
   grid-template-columns: minmax(150px, 210px) minmax(0, 1fr);
-  gap: 18px;
-  padding: 8px 0 4px;
+  gap: 16px;
+  padding: 4px 0 2px;
 }
 
 .dashboard-body .resource-review-score {
   border-right: 1px solid #dee5f1;
-  padding-right: 16px;
+  padding-right: 14px;
   display: grid;
-  gap: 8px;
+  gap: 6px;
   align-content: start;
 }
 
@@ -1104,7 +1108,7 @@
 
 .dashboard-body .resource-review-bars {
   display: grid;
-  gap: 10px;
+  gap: 9px;
 }
 
 .dashboard-body .resource-review-row {
@@ -1115,9 +1119,9 @@
 }
 
 .dashboard-body .resource-review-track {
-  height: 12px;
+  height: 10px;
   border-radius: 999px;
-  background: #e9eef7;
+  background: #edf1f7;
   overflow: hidden;
 }
 
@@ -1133,11 +1137,11 @@
 }
 
 .dashboard-body .resource-review-meta {
-  min-width: 118px;
+  min-width: 110px;
   display: inline-flex;
   align-items: baseline;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 7px;
 }
 
 .dashboard-body .resource-review-meta strong {
@@ -1158,49 +1162,47 @@
 .dashboard-body .resource-rating-form {
   display: flex;
   flex-wrap: wrap;
-  align-items: end;
-  gap: 10px;
+  align-items: center;
+  gap: 10px 12px;
+  padding-top: 4px;
 }
 
 .dashboard-body .resource-rating-form label {
   margin: 0;
-  min-width: 110px;
+  min-width: 96px;
   font-size: 0.86rem;
   color: #41526a;
+  font-weight: 500;
 }
 
 .dashboard-body .resource-rating-form select {
-  min-width: 180px;
-}
-
-.dashboard-body .resource-comments-card .card-body {
-  background: #f7f8fc;
-  border-radius: 18px;
-  border: 1px solid #e1e6f1;
+  min-width: 160px;
 }
 
 .dashboard-body .resource-comments-shell {
   display: grid;
-  gap: 16px;
+  gap: 12px;
 }
 
 .dashboard-body .resource-comments-composer {
-  border: 1px solid #dfe5f2;
-  background: #fff;
-  border-radius: 14px;
-  padding: 10px;
+  border: 1px solid #dce4ef;
+  background: #fafcff;
+  border-radius: 12px;
+  padding: 10px 12px;
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .dashboard-body .resource-comments-composer textarea,
 .dashboard-body .resource-comment-inline-form textarea {
   width: 100%;
   resize: vertical;
-  border: 1px solid #dbe2ef;
-  border-radius: 12px;
-  background: #f9fbff;
-  min-height: 96px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  min-height: 84px;
+  box-shadow: none;
+  padding: 2px 0;
 }
 
 .dashboard-body .resource-comments-composer-footer {
@@ -1208,11 +1210,13 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  border-top: 1px solid #e3eaf4;
+  padding-top: 8px;
 }
 
 .dashboard-body .resource-comments-divider {
   height: 1px;
-  background: #dde4f1;
+  background: #e4eaf3;
 }
 
 .dashboard-body .resource-comments-header-row {
@@ -1235,46 +1239,52 @@
 }
 
 .dashboard-body .resource-comments-sort {
-  font-size: 0.84rem;
-  color: #5f6f87;
+  font-size: 0.82rem;
+  color: #6a7a91;
 }
 
 .dashboard-body .resource-comments-list {
   display: grid;
-  gap: 14px;
+  gap: 0;
 }
 
 .dashboard-body .resource-comment {
   display: grid;
-  gap: 10px;
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid #e5ebf4;
+}
+
+.dashboard-body .resource-comment:last-child {
+  border-bottom: 0;
 }
 
 .dashboard-body .resource-comment-main {
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr);
+  grid-template-columns: 32px minmax(0, 1fr);
   gap: 10px;
 }
 
 .dashboard-body .resource-comment-avatar {
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   border-radius: 999px;
   display: inline-grid;
   place-items: center;
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   font-weight: 600;
   color: var(--dash-brand-dark);
-  border: 1px solid rgba(var(--dash-brand-rgb), 0.24);
-  background: var(--dash-brand-soft);
+  border: 1px solid rgba(var(--dash-brand-rgb), 0.22);
+  background: #f3efff;
 }
 
 .dashboard-body .resource-comment-body {
-  background: #ffffff;
-  border: 1px solid #dde4f0;
-  border-radius: 12px;
-  padding: 10px 12px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .dashboard-body .resource-comment-header {
@@ -1292,7 +1302,7 @@
 .dashboard-body .resource-comment p {
   margin: 0;
   color: #2d3f55;
-  line-height: 1.55;
+  line-height: 1.5;
   font-size: 0.9rem;
 }
 
@@ -1300,7 +1310,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .dashboard-body .resource-comment-action-block {
@@ -1308,27 +1318,24 @@
 }
 
 .dashboard-body .resource-comment-action-btn {
-  border: 1px solid #d5ddec;
-  background: #f8faff;
-  color: #3f5067;
-  border-radius: 999px;
-  font-size: 0.78rem;
+  border: 0;
+  background: transparent;
+  color: #5f7088;
+  border-radius: 0;
+  font-size: 0.8rem;
   font-weight: 500;
-  padding: 5px 11px;
+  padding: 0;
   line-height: 1;
   cursor: pointer;
 }
 
 .dashboard-body .resource-comment-action-btn:hover,
 .dashboard-body .resource-comment-action-block[open] .resource-comment-action-btn {
-  border-color: rgba(var(--dash-brand-rgb), 0.32);
   color: var(--dash-brand-dark);
-  background: rgba(var(--dash-brand-rgb), 0.08);
+  background: transparent;
 }
 
 .dashboard-body .resource-comment-action-btn.is-danger:hover {
-  background: #fff2f4;
-  border-color: #e9bcc2;
   color: #b11d2e;
 }
 
@@ -1337,22 +1344,29 @@
 }
 
 .dashboard-body .resource-comment-inline-form {
-  margin-top: 8px;
+  margin-top: 6px;
   display: grid;
   gap: 8px;
-  min-width: min(420px, 100%);
+  min-width: min(440px, 100%);
+  border: 1px solid #dce4ef;
+  border-radius: 10px;
+  background: #fff;
+  padding: 8px;
 }
 
 .dashboard-body .resource-comment-inline-form textarea {
-  min-height: 84px;
+  min-height: 74px;
+  border: 1px solid #dce4ef;
+  border-radius: 8px;
+  padding: 8px 10px;
 }
 
 .dashboard-body .resource-comment-children {
-  margin-left: 16px;
-  padding-left: 16px;
-  border-left: 1px solid #d6dfed;
+  margin-left: 12px;
+  padding-left: 12px;
+  border-left: 1px solid #dde5f1;
   display: grid;
-  gap: 12px;
+  gap: 0;
 }
 
 .dashboard-body .table {

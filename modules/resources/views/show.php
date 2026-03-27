@@ -104,7 +104,7 @@ $filledStars = max(0, min(5, (int) round($averageRating)));
     </div>
 <?php endif; ?>
 
-<section class="card resource-interactions-card" id="resource-interactions">
+<section class="resource-interactions-card" id="resource-interactions">
     <div class="card-body">
         <h3>Reviews</h3>
         <div class="resource-review-layout">
@@ -162,7 +162,7 @@ $filledStars = max(0, min(5, (int) round($averageRating)));
     </div>
 </section>
 
-<section class="card resource-comments-card" id="resource-comments">
+<section class="resource-comments-card" id="resource-comments">
     <div class="card-body">
         <div class="resource-comments-shell">
             <form method="POST" action="/resources/<?= $resourceId ?>/comments" class="resource-comments-composer">
