@@ -213,6 +213,34 @@ function resources_upsert_student_rating(int $resourceId, int $studentUserId, in
     );
 }
 
+function resources_rating_distribution(int $resourceId): array
+{
+    $rows = db_fetch_all(
+        "SELECT rating, COUNT(*) AS cnt
+         FROM resource_ratings
+         WHERE resource_id = ?
+         GROUP BY rating",
+        [$resourceId]
+    );
+
+    $distribution = [
+        1 => 0,
+        2 => 0,
+        3 => 0,
+        4 => 0,
+        5 => 0,
+    ];
+
+    foreach ($rows as $row) {
+        $rating = (int) ($row['rating'] ?? 0);
+        if ($rating >= 1 && $rating <= 5) {
+            $distribution[$rating] = (int) ($row['cnt'] ?? 0);
+        }
+    }
+
+    return $distribution;
+}
+
 function resources_all_ids_in_topic(int $topicId): array
 {
     $rows = db_fetch_all(

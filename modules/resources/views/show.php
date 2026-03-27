@@ -9,6 +9,9 @@ $averageRating = (float) ($resource['average_rating'] ?? 0);
 $ratingCount = (int) ($resource['rating_count'] ?? 0);
 $commentCount = (int) ($resource['comment_count'] ?? 0);
 $maxCommentLevel = (int) ($comment_max_level ?? (comments_max_depth() + 1));
+$ratingDistribution = (array) ($rating_distribution ?? []);
+$ratingPeak = max(1, (int) ($rating_distribution_peak ?? 0));
+$filledStars = max(0, min(5, (int) round($averageRating)));
 ?>
 
 <div class="page-header">
@@ -103,9 +106,37 @@ $maxCommentLevel = (int) ($comment_max_level ?? (comments_max_depth() + 1));
 
 <section class="card resource-interactions-card" id="resource-interactions">
     <div class="card-body">
-        <h3>Interactions</h3>
+        <h3>Reviews</h3>
+        <div class="resource-review-layout">
+            <div class="resource-review-score">
+                <strong><?= e(resources_format_rating_value($averageRating)) ?></strong>
+                <div class="resource-review-stars" aria-label="Average rating <?= e(resources_format_rating_value($averageRating)) ?> out of 5">
+                    <?php for ($star = 1; $star <= 5; $star++): ?>
+                        <span class="<?= $star <= $filledStars ? 'is-filled' : '' ?>">★</span>
+                    <?php endfor; ?>
+                </div>
+                <small><?= e($ratingCount . ' rating' . ($ratingCount === 1 ? '' : 's')) ?></small>
+            </div>
+            <div class="resource-review-bars">
+                <?php for ($score = 5; $score >= 1; $score--): ?>
+                    <?php
+                    $bucketCount = (int) ($ratingDistribution[$score] ?? 0);
+                    $bucketPercent = $ratingPeak > 0 ? ($bucketCount / $ratingPeak) * 100 : 0;
+                    ?>
+                    <div class="resource-review-row">
+                        <div class="resource-review-track">
+                            <span class="resource-review-fill" style="width: <?= e(number_format($bucketPercent, 2, '.', '')) ?>%;"></span>
+                        </div>
+                        <div class="resource-review-meta">
+                            <strong><?= $score ?>.0</strong>
+                            <span><?= e($bucketCount . ' review' . ($bucketCount === 1 ? '' : 's')) ?></span>
+                        </div>
+                    </div>
+                <?php endfor; ?>
+            </div>
+        </div>
+
         <div class="resource-interactions-summary">
-            <span class="badge"><?= e(resources_rating_summary_label($averageRating, $ratingCount)) ?></span>
             <span class="badge"><?= e(resources_comment_count_label($commentCount)) ?></span>
         </div>
 

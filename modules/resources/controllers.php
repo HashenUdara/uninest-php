@@ -101,6 +101,15 @@ function resources_comment_count_label(int $commentCount): string
     return $commentCount . ' comment' . ($commentCount === 1 ? '' : 's');
 }
 
+function resources_rating_distribution_peak(array $distribution): int
+{
+    if (empty($distribution)) {
+        return 0;
+    }
+
+    return (int) max(array_map(static fn($value): int => (int) $value, $distribution));
+}
+
 function resources_file_previewable_extensions(): array
 {
     return ['pdf', 'jpg', 'jpeg', 'png', 'txt'];
@@ -640,6 +649,8 @@ function resources_topic_show(string $id, string $topicId, string $resourceId): 
         $currentUserRating = resources_find_student_rating($resourceIdInt, (int) auth_id());
     }
 
+    $ratingDistribution = resources_rating_distribution($resourceIdInt);
+
     $commentsTree = comments_tree_for_target('resource', $resourceIdInt);
     $commentsTree = resources_enrich_comment_tree($commentsTree, $resource);
 
@@ -649,6 +660,8 @@ function resources_topic_show(string $id, string $topicId, string $resourceId): 
         'resource' => $resource,
         'current_user_rating' => $currentUserRating,
         'can_rate' => $viewerCanRate,
+        'rating_distribution' => $ratingDistribution,
+        'rating_distribution_peak' => resources_rating_distribution_peak($ratingDistribution),
         'comments' => $commentsTree,
         'comment_max_level' => comments_max_depth() + 1,
     ], 'dashboard');

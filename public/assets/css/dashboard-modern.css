@@ -1060,6 +1060,95 @@
   color: #1b283b;
 }
 
+.dashboard-body .resource-review-layout {
+  display: grid;
+  grid-template-columns: minmax(150px, 210px) minmax(0, 1fr);
+  gap: 18px;
+  padding: 8px 0 4px;
+}
+
+.dashboard-body .resource-review-score {
+  border-right: 1px solid #dee5f1;
+  padding-right: 16px;
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+
+.dashboard-body .resource-review-score strong {
+  font-size: 3rem;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: #1a2940;
+}
+
+.dashboard-body .resource-review-stars {
+  display: inline-flex;
+  gap: 4px;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.dashboard-body .resource-review-stars span {
+  color: #d3dced;
+}
+
+.dashboard-body .resource-review-stars span.is-filled {
+  color: var(--dash-brand);
+}
+
+.dashboard-body .resource-review-score small {
+  color: #67788f;
+  font-size: 0.95rem;
+}
+
+.dashboard-body .resource-review-bars {
+  display: grid;
+  gap: 10px;
+}
+
+.dashboard-body .resource-review-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+}
+
+.dashboard-body .resource-review-track {
+  height: 12px;
+  border-radius: 999px;
+  background: #e9eef7;
+  overflow: hidden;
+}
+
+.dashboard-body .resource-review-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    rgba(var(--dash-brand-rgb), 0.92) 0%,
+    rgba(var(--dash-brand-rgb), 0.7) 100%
+  );
+}
+
+.dashboard-body .resource-review-meta {
+  min-width: 118px;
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.dashboard-body .resource-review-meta strong {
+  color: #1f2f45;
+}
+
+.dashboard-body .resource-review-meta span {
+  color: #66778f;
+  font-size: 0.9rem;
+}
+
 .dashboard-body .resource-interactions-summary {
   display: flex;
   flex-wrap: wrap;
@@ -1707,6 +1796,26 @@
 
   .dashboard-body .resource-embed-frame {
     min-height: 420px;
+  }
+
+  .dashboard-body .resource-review-layout {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .dashboard-body .resource-review-score {
+    border-right: 0;
+    border-bottom: 1px solid #dee5f1;
+    padding-right: 0;
+    padding-bottom: 12px;
+  }
+
+  .dashboard-body .resource-review-score strong {
+    font-size: 2.3rem;
+  }
+
+  .dashboard-body .resource-review-meta {
+    min-width: 104px;
   }
 
   .dashboard-body .resource-comments-composer-footer,
