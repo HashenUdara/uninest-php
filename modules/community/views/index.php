@@ -6,6 +6,41 @@ $selectedPostType = (string) ($selected_post_type ?? '');
 $selectedSort = (string) ($selected_sort ?? 'recent');
 $postTypeCounts = (array) ($post_type_counts ?? []);
 $popularPosts = (array) ($popular_posts ?? []);
+$subjectOptions = (array) ($subject_options ?? []);
+$feedPosts = (array) ($posts ?? []);
+$activeBatch = (array) ($active_batch ?? []);
+
+$activeBatchCode = trim((string) ($activeBatch['batch_code'] ?? ''));
+$activeBatchName = trim((string) ($activeBatch['name'] ?? ''));
+if ($activeBatchName === '') {
+    $activeBatchName = 'Your Batch';
+}
+$activeUniversityName = trim((string) ($activeBatch['university_name'] ?? ''));
+
+$allCount = (int) ($postTypeCounts['_all'] ?? count($feedPosts));
+$todayPosts = 0;
+foreach ($feedPosts as $postForTodayCount) {
+    $createdAt = (string) ($postForTodayCount['created_at'] ?? '');
+    if ($createdAt !== '' && str_starts_with($createdAt, date('Y-m-d'))) {
+        $todayPosts++;
+    }
+}
+
+$selectedSubjectLabel = 'All Subjects';
+if ($selectedSubjectId > 0) {
+    foreach ($subjectOptions as $subjectOption) {
+        if ((int) ($subjectOption['id'] ?? 0) === $selectedSubjectId) {
+            $selectedSubjectLabel = trim((string) ($subjectOption['code'] ?? ''));
+            if ($selectedSubjectLabel === '') {
+                $selectedSubjectLabel = trim((string) ($subjectOption['name'] ?? 'Filtered Subject'));
+            }
+            break;
+        }
+    }
+}
+
+$selectedTypeLabel = $selectedPostType !== '' ? community_post_type_label($selectedPostType) : 'All Posts';
+$selectedSortLabel = $selectedSort === 'top' ? 'Top Engaged' : 'Most Recent';
 
 $buildFeedUrl = static function (array $params = []) use ($is_admin, $selectedBatchId, $selectedSubjectId, $selectedSort): string {
     $query = [];
@@ -54,60 +89,41 @@ $buildFeedUrl = static function (array $params = []) use ($is_admin, $selectedBa
 <?php else: ?>
     <section class="community-shell">
         <main class="community-main-column">
-            <article class="community-topbar-card">
-                <form method="GET" action="/dashboard/community" class="community-topbar-form">
-                    <?php if (!empty($is_admin)): ?>
-                        <div class="form-group">
-                            <label for="batch_id">Batch</label>
-                            <select id="batch_id" name="batch_id" required>
-                                <?php foreach ($batch_options as $batch): ?>
-                                    <?php $batchId = (int) ($batch['id'] ?? 0); ?>
-                                    <option value="<?= $batchId ?>" <?= $selectedBatchId === $batchId ? 'selected' : '' ?>>
-                                        <?= e((string) ($batch['batch_code'] ?? 'BATCH')) ?> — <?= e((string) ($batch['name'] ?? '')) ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
+            <article class="community-feed-hero">
+                <div class="community-feed-hero-copy">
+                    <p class="community-feed-eyebrow">Batch Community Feed</p>
+                    <h1><?= e($activeBatchCode !== '' ? $activeBatchCode . ' · ' . $activeBatchName : $activeBatchName) ?></h1>
+                    <p>
+                        Real-time updates, questions, and resource sharing for your batch.
+                        <?php if ($activeUniversityName !== ''): ?>
+                            <?= e($activeUniversityName) ?> is currently active in this space.
+                        <?php endif; ?>
+                    </p>
+                </div>
+                <div class="community-feed-hero-stats">
+                    <span class="community-feed-stat">
+                        <strong><?= $allCount ?></strong>
+                        <small><?= $allCount === 1 ? 'Post' : 'Posts' ?></small>
+                    </span>
+                    <span class="community-feed-stat">
+                        <strong><?= $todayPosts ?></strong>
+                        <small>Today</small>
+                    </span>
+                    <span class="community-feed-stat">
+                        <strong><?= count($subjectOptions) ?></strong>
+                        <small><?= count($subjectOptions) === 1 ? 'Subject' : 'Subjects' ?></small>
+                    </span>
+                </div>
+                <div class="community-feed-hero-actions">
+                    <a href="/dashboard" class="community-hero-link">Dashboard</a>
+                    <?php if (!empty($can_post)): ?>
+                        <a href="/my-posts" class="community-hero-link">My Posts</a>
                     <?php endif; ?>
-
-                    <div class="form-group">
-                        <label for="subject_id">Subject</label>
-                        <select id="subject_id" name="subject_id">
-                            <option value="">All subjects</option>
-                            <?php foreach ($subject_options as $subject): ?>
-                                <?php $subjectId = (int) ($subject['id'] ?? 0); ?>
-                                <option value="<?= $subjectId ?>" <?= $selectedSubjectId === $subjectId ? 'selected' : '' ?>>
-                                    <?= e((string) ($subject['code'] ?? 'SUB')) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="sort">Sort</label>
-                        <select id="sort" name="sort">
-                            <option value="recent" <?= $selectedSort === 'recent' ? 'selected' : '' ?>>Most Recent</option>
-                            <option value="top" <?= $selectedSort === 'top' ? 'selected' : '' ?>>Top Engaged</option>
-                        </select>
-                    </div>
-
-                    <?php if ($selectedPostType !== ''): ?>
-                        <input type="hidden" name="post_type" value="<?= e($selectedPostType) ?>">
-                    <?php endif; ?>
-
-                    <div class="community-topbar-actions">
-                        <a href="/dashboard" class="community-topbar-link">← Dashboard</a>
-                        <button type="submit" class="btn btn-primary">Apply</button>
-                        <a href="<?= e($buildFeedUrl(['subject_id' => null])) ?>" class="btn btn-outline">Reset</a>
-                    </div>
-                </form>
+                </div>
             </article>
 
             <nav class="community-category-strip" aria-label="Feed categories">
-                <?php
-                $allCount = (int) ($postTypeCounts['_all'] ?? 0);
-                $allActive = $selectedPostType === '';
-                ?>
+                <?php $allActive = $selectedPostType === ''; ?>
                 <a href="<?= e($buildFeedUrl(['post_type' => null])) ?>" class="community-category-pill <?= $allActive ? 'is-active' : '' ?>">
                     <span>All Posts</span>
                     <span class="community-category-count"><?= $allCount ?></span>
@@ -126,11 +142,15 @@ $buildFeedUrl = static function (array $params = []) use ($is_admin, $selectedBa
 
             <?php if (!empty($can_post)): ?>
                 <article class="community-composer-card social-composer">
+                    <header class="social-composer-head">
+                        <h3>Start a conversation</h3>
+                        <p>Share announcements, questions, or helpful resources with your batch.</p>
+                    </header>
                     <form method="POST" action="/dashboard/community" enctype="multipart/form-data" class="community-composer-form">
                         <?= csrf_field() ?>
                         <div class="social-composer-row">
                             <span class="community-post-avatar"><?= e(ui_initials((string) (auth_user()['name'] ?? 'User'))) ?></span>
-                            <textarea id="body" name="body" rows="3" placeholder="Share with your batch..."><?= e(old('body', '')) ?></textarea>
+                            <textarea id="body" name="body" rows="3" placeholder="What is happening in your batch today?"><?= e(old('body', '')) ?></textarea>
                         </div>
 
                         <div class="social-composer-controls">
@@ -146,7 +166,7 @@ $buildFeedUrl = static function (array $params = []) use ($is_admin, $selectedBa
                                 <select id="composer_subject_id" name="subject_id">
                                     <option value="">General (No Subject)</option>
                                     <?php $composerSubjectId = (int) old('subject_id', (string) $selectedSubjectId); ?>
-                                    <?php foreach ($subject_options as $subject): ?>
+                                    <?php foreach ($subjectOptions as $subject): ?>
                                         <?php $subjectId = (int) ($subject['id'] ?? 0); ?>
                                         <option value="<?= $subjectId ?>" <?= $composerSubjectId === $subjectId ? 'selected' : '' ?>>
                                             <?= e((string) ($subject['code'] ?? 'SUB')) ?> — <?= e((string) ($subject['name'] ?? '')) ?>
@@ -158,19 +178,20 @@ $buildFeedUrl = static function (array $params = []) use ($is_admin, $selectedBa
                                     <span>Add Photo</span>
                                 </label>
                             </div>
-                            <button type="submit" class="btn btn-primary">Publish</button>
+                            <button type="submit" class="btn btn-primary">Post to Feed</button>
                         </div>
                     </form>
                 </article>
             <?php endif; ?>
 
-            <?php if (empty($posts)): ?>
-                <article class="community-post-card">
-                    <p class="text-muted">No posts found for the current filters.</p>
+            <?php if (empty($feedPosts)): ?>
+                <article class="community-post-card community-empty-state">
+                    <h3>Nothing in this view yet</h3>
+                    <p class="text-muted">Try changing filters or publish the first post to get the conversation moving.</p>
                 </article>
             <?php else: ?>
                 <section class="community-post-list">
-                    <?php foreach ($posts as $post): ?>
+                    <?php foreach ($feedPosts as $post): ?>
                         <?php
                         $postId = (int) ($post['id'] ?? 0);
                         $authorName = trim((string) ($post['author_name'] ?? ''));
@@ -191,7 +212,7 @@ $buildFeedUrl = static function (array $params = []) use ($is_admin, $selectedBa
                                         <div class="community-post-meta-line">
                                             <span><?= e(date('M d, Y • H:i', strtotime((string) ($post['created_at'] ?? 'now')))) ?></span>
                                             <?php if (!empty($post['edited_at'])): ?>
-                                                <span>• Edited</span>
+                                                <span>Edited</span>
                                             <?php endif; ?>
                                         </div>
                                     </div>
@@ -215,8 +236,8 @@ $buildFeedUrl = static function (array $params = []) use ($is_admin, $selectedBa
                             <?php endif; ?>
 
                             <div class="community-post-stats-row">
-                                <span><?= (int) ($post['like_count'] ?? 0) ?> likes</span>
-                                <span><?= (int) ($post['comment_count'] ?? 0) ?> comments</span>
+                                <span><strong><?= (int) ($post['like_count'] ?? 0) ?></strong> likes</span>
+                                <span><strong><?= (int) ($post['comment_count'] ?? 0) ?></strong> comments</span>
                             </div>
 
                             <footer class="community-post-footer social-post-actions">
@@ -228,7 +249,7 @@ $buildFeedUrl = static function (array $params = []) use ($is_admin, $selectedBa
                                     </button>
                                 </form>
                                 <a href="<?= e(community_post_url($post)) ?>" class="community-action-btn">Comment</a>
-                                <a href="<?= e(community_post_url($post)) ?>" class="community-action-btn">View Full Post</a>
+                                <a href="<?= e(community_post_url($post)) ?>" class="community-action-btn">Open Thread</a>
                             </footer>
                         </article>
                     <?php endforeach; ?>
@@ -237,34 +258,88 @@ $buildFeedUrl = static function (array $params = []) use ($is_admin, $selectedBa
         </main>
 
         <aside class="community-right-rail">
+            <article class="community-rail-card community-rail-controls">
+                <header class="community-rail-header">
+                    <h3>Feed Controls</h3>
+                </header>
+                <form method="GET" action="/dashboard/community" class="community-topbar-form community-rail-filter-form">
+                    <?php if (!empty($is_admin)): ?>
+                        <div class="form-group">
+                            <label for="batch_id">Batch</label>
+                            <select id="batch_id" name="batch_id" required>
+                                <?php foreach ($batch_options as $batch): ?>
+                                    <?php $batchId = (int) ($batch['id'] ?? 0); ?>
+                                    <option value="<?= $batchId ?>" <?= $selectedBatchId === $batchId ? 'selected' : '' ?>>
+                                        <?= e((string) ($batch['batch_code'] ?? 'BATCH')) ?> — <?= e((string) ($batch['name'] ?? '')) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    <?php endif; ?>
+
+                    <div class="form-group">
+                        <label for="subject_id">Subject</label>
+                        <select id="subject_id" name="subject_id">
+                            <option value="">All subjects</option>
+                            <?php foreach ($subjectOptions as $subject): ?>
+                                <?php $subjectId = (int) ($subject['id'] ?? 0); ?>
+                                <option value="<?= $subjectId ?>" <?= $selectedSubjectId === $subjectId ? 'selected' : '' ?>>
+                                    <?= e((string) ($subject['code'] ?? 'SUB')) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sort">Sort</label>
+                        <select id="sort" name="sort">
+                            <option value="recent" <?= $selectedSort === 'recent' ? 'selected' : '' ?>>Most Recent</option>
+                            <option value="top" <?= $selectedSort === 'top' ? 'selected' : '' ?>>Top Engaged</option>
+                        </select>
+                    </div>
+
+                    <?php if ($selectedPostType !== ''): ?>
+                        <input type="hidden" name="post_type" value="<?= e($selectedPostType) ?>">
+                    <?php endif; ?>
+
+                    <div class="community-topbar-actions">
+                        <button type="submit" class="btn btn-primary">Refresh Feed</button>
+                        <a href="<?= e($buildFeedUrl(['subject_id' => null])) ?>" class="btn btn-outline">Clear Subject</a>
+                    </div>
+                </form>
+            </article>
+
             <article class="community-rail-card">
                 <header class="community-rail-header">
                     <h3>Feed State</h3>
+                    <span class="community-rail-kicker">Live</span>
                 </header>
                 <ul class="community-mini-list">
                     <li>
                         <span>Sort</span>
-                        <strong><?= $selectedSort === 'top' ? 'Top Engaged' : 'Most Recent' ?></strong>
+                        <strong><?= e($selectedSortLabel) ?></strong>
                     </li>
                     <li>
                         <span>Subject</span>
-                        <strong><?= $selectedSubjectId > 0 ? 'Filtered' : 'All' ?></strong>
+                        <strong><?= e($selectedSubjectLabel) ?></strong>
                     </li>
                     <li>
                         <span>Category</span>
-                        <strong><?= $selectedPostType !== '' ? e(community_post_type_label($selectedPostType)) : 'All Posts' ?></strong>
+                        <strong><?= e($selectedTypeLabel) ?></strong>
                     </li>
                 </ul>
             </article>
 
             <article class="community-rail-card">
                 <header class="community-rail-header">
-                    <h3>Top Discussions</h3>
+                    <h3>Trending Discussions</h3>
+                    <span class="community-rail-kicker"><?= count($popularPosts) ?></span>
                 </header>
                 <?php if (empty($popularPosts)): ?>
                     <p class="text-muted">No popular posts yet.</p>
                 <?php else: ?>
                     <div class="community-popular-list">
+                        <?php $rank = 1; ?>
                         <?php foreach ($popularPosts as $popular): ?>
                             <?php
                             $popularAuthor = trim((string) ($popular['author_name'] ?? ''));
@@ -277,13 +352,28 @@ $buildFeedUrl = static function (array $params = []) use ($is_admin, $selectedBa
                             }
                             ?>
                             <a href="<?= e(community_post_url($popular)) ?>" class="community-popular-item">
-                                <strong><?= e($popularAuthor) ?></strong>
-                                <p><?= e(strlen($popularBody) > 92 ? substr($popularBody, 0, 92) . '...' : $popularBody) ?></p>
-                                <small><?= (int) ($popular['like_count'] ?? 0) ?> likes · <?= (int) ($popular['comment_count'] ?? 0) ?> comments</small>
+                                <span class="community-popular-rank"><?= $rank ?></span>
+                                <div class="community-popular-copy">
+                                    <strong><?= e($popularAuthor) ?></strong>
+                                    <p><?= e(strlen($popularBody) > 92 ? substr($popularBody, 0, 92) . '...' : $popularBody) ?></p>
+                                    <small><?= (int) ($popular['like_count'] ?? 0) ?> likes · <?= (int) ($popular['comment_count'] ?? 0) ?> comments</small>
+                                </div>
                             </a>
+                            <?php $rank++; ?>
                         <?php endforeach; ?>
                     </div>
                 <?php endif; ?>
+            </article>
+
+            <article class="community-rail-card">
+                <header class="community-rail-header">
+                    <h3>Post Better</h3>
+                </header>
+                <ul class="community-tip-list">
+                    <li>Use clear subject tags so teammates can discover your post faster.</li>
+                    <li>Short direct titles and a useful image usually get more replies.</li>
+                    <li>Follow up in comments to keep your thread active.</li>
+                </ul>
             </article>
         </aside>
     </section>
