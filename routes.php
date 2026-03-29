@@ -39,6 +39,7 @@ route('POST', '/onboarding/student/resubmit',    'onboarding_student_resubmit', 
 route('GET', '/dashboard', 'dashboard_index', ['middleware_auth', 'middleware_onboarding_complete']);
 route('GET', '/dashboard/community', 'community_index', ['middleware_auth', 'middleware_onboarding_complete']);
 route('POST', '/dashboard/community', 'community_store', ['middleware_auth', 'middleware_onboarding_complete']);
+route('GET', '/dashboard/community/create', 'community_create_form', ['middleware_auth', 'middleware_onboarding_complete']);
 route('GET', '/dashboard/community/{id}', 'community_show', ['middleware_auth', 'middleware_onboarding_complete']);
 route('POST', '/dashboard/community/{id}', 'community_update_action', ['middleware_auth', 'middleware_onboarding_complete']);
 route('POST', '/dashboard/community/{id}/delete', 'community_delete_action', ['middleware_auth', 'middleware_onboarding_complete']);

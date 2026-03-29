@@ -1340,6 +1340,167 @@
   box-shadow: 0 14px 28px -28px rgba(15, 23, 42, 0.75);
 }
 
+.dashboard-body .community-compose-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dashboard-body .community-compose-cta-copy {
+  display: grid;
+  gap: 3px;
+}
+
+.dashboard-body .community-compose-cta-copy strong {
+  color: #1b304d;
+  font-size: 0.95rem;
+  font-weight: 620;
+}
+
+.dashboard-body .community-compose-cta-copy p {
+  margin: 0;
+  color: #60748f;
+  font-size: 0.83rem;
+}
+
+.dashboard-body .community-create-layout {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 290px);
+  gap: 14px;
+  align-items: start;
+}
+
+.dashboard-body .community-create-composer {
+  padding: 14px 15px;
+}
+
+.dashboard-body .community-create-editor {
+  border: 1px solid #d8e4f6;
+  border-radius: 16px;
+  background: #fcfdff;
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.dashboard-body .community-create-editor:focus-within {
+  border-color: rgba(var(--feed-accent-rgb), 0.5);
+  box-shadow: 0 0 0 3px rgba(var(--feed-accent-rgb), 0.14);
+}
+
+.dashboard-body .community-create-author-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dashboard-body .community-create-author-meta {
+  display: grid;
+  gap: 2px;
+}
+
+.dashboard-body .community-create-author-meta strong {
+  font-size: 0.9rem;
+  font-weight: 620;
+  color: #1c3250;
+}
+
+.dashboard-body .community-create-author-meta small {
+  font-size: 0.78rem;
+  color: #60748f;
+}
+
+.dashboard-body .community-create-editor textarea {
+  border: 0;
+  background: transparent;
+  min-height: 260px;
+  resize: vertical;
+  font-size: 0.95rem;
+  line-height: 1.64;
+  color: #223950;
+  padding: 0;
+}
+
+.dashboard-body .community-create-editor textarea:focus {
+  outline: none;
+}
+
+.dashboard-body .community-upload-hint {
+  margin: -2px 0 0;
+  font-size: 0.74rem;
+  color: #667b95;
+}
+
+.dashboard-body .community-image-preview {
+  border: 1px solid #d9e4f4;
+  border-radius: 14px;
+  background: #fff;
+  overflow: hidden;
+  max-width: 560px;
+}
+
+.dashboard-body .community-image-preview img {
+  width: 100%;
+  max-height: 340px;
+  object-fit: cover;
+  background: #f2f7ff;
+  display: block;
+}
+
+.dashboard-body .community-image-preview-footer {
+  border-top: 1px solid #e8eef8;
+  background: #f9fbff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+}
+
+.dashboard-body .community-image-preview-footer span {
+  min-width: 0;
+  color: #526984;
+  font-size: 0.78rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.dashboard-body .community-image-remove-btn {
+  border: 1px solid #d6e2f1;
+  border-radius: 999px;
+  background: #fff;
+  color: #365371;
+  font-size: 0.75rem;
+  font-weight: 560;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.dashboard-body .community-image-remove-btn:hover {
+  border-color: #bfd0e7;
+  background: #f6faff;
+}
+
+.dashboard-body .community-create-actions {
+  border-top: 1px solid #ecf2f9;
+  padding-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.dashboard-body .community-create-guide {
+  position: sticky;
+  top: 84px;
+}
+
 .dashboard-body .community-composer-form {
   display: grid;
   gap: 11px;
@@ -2723,6 +2884,14 @@
   .dashboard-body .community-feed-hero h1 {
     font-size: 1.5rem;
   }
+
+  .dashboard-body .community-create-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-body .community-create-guide {
+    position: static;
+  }
 }
 
 @media (max-width: 720px) {
@@ -2849,6 +3018,42 @@
 
   .dashboard-body .community-topbar-actions .btn {
     width: 100%;
+  }
+
+  .dashboard-body .community-compose-cta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .dashboard-body .community-compose-cta .btn {
+    width: 100%;
+  }
+
+  .dashboard-body .community-create-actions {
+    width: 100%;
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .dashboard-body .community-create-actions .btn {
+    width: 100%;
+  }
+
+  .dashboard-body .community-create-editor {
+    padding: 10px;
+  }
+
+  .dashboard-body .community-create-editor textarea {
+    min-height: 200px;
+  }
+
+  .dashboard-body .community-image-preview {
+    max-width: 100%;
+  }
+
+  .dashboard-body .community-image-preview-footer {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .dashboard-body .social-composer-inline-fields {

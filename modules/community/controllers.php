@@ -71,6 +71,21 @@ function community_resolve_valid_return_to(string $returnTo, array $post, string
     return community_post_url($post) . $fallbackAnchor;
 }
 
+function community_store_error_redirect_url(): string
+{
+    $raw = trim((string) request_input('return_to', ''));
+    if ($raw === '') {
+        return '/dashboard/community';
+    }
+
+    $path = (string) parse_url($raw, PHP_URL_PATH);
+    if (str_starts_with($path, '/dashboard/community/create') || str_starts_with($path, '/dashboard/community')) {
+        return $raw;
+    }
+
+    return '/dashboard/community';
+}
+
 function community_request_uploaded_image(string $field = 'image'): ?array
 {
     if (!isset($_FILES[$field]) || !is_array($_FILES[$field])) {
@@ -499,9 +514,29 @@ function community_index(): void
     ], 'dashboard');
 }
 
+function community_create_form(): void
+{
+    if (!community_user_can_post()) {
+        abort(403, 'You do not have permission to create community posts.');
+    }
+
+    $batchId = (int) (auth_user()['batch_id'] ?? 0);
+    if ($batchId <= 0) {
+        abort(403, 'You are not assigned to a batch.');
+    }
+
+    view('community::create', [
+        'active_batch' => community_find_batch_option_by_id($batchId),
+        'post_types' => community_post_types(),
+        'subject_options' => community_subject_options_for_batch($batchId),
+        'back_feed_url' => '/dashboard/community',
+    ], 'dashboard');
+}
+
 function community_store(): void
 {
     csrf_check();
+    $errorRedirect = community_store_error_redirect_url();
 
     if (!community_user_can_post()) {
         abort(403, 'You do not have permission to create community posts.');
@@ -516,7 +551,7 @@ function community_store(): void
     if (!empty($prepared['errors'])) {
         flash('error', implode(' ', $prepared['errors']));
         flash_old_input();
-        redirect('/dashboard/community');
+        redirect($errorRedirect);
     }
 
     $storedImageMeta = null;
@@ -527,7 +562,7 @@ function community_store(): void
     } catch (Throwable $e) {
         flash('error', 'Unable to upload image: ' . $e->getMessage());
         flash_old_input();
-        redirect('/dashboard/community');
+        redirect($errorRedirect);
     }
 
     $payload = community_compose_post_payload($prepared['validated'], null, $storedImageMeta);
@@ -548,7 +583,7 @@ function community_store(): void
         community_cleanup_file_paths([$storedImageMeta['image_path'] ?? null]);
         flash('error', 'Unable to create post right now. Please try again.');
         flash_old_input();
-        redirect('/dashboard/community');
+        redirect($errorRedirect);
     }
 
     clear_old_input();

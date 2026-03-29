@@ -115,6 +115,9 @@ $buildFeedUrl = static function (array $params = []) use ($is_admin, $selectedBa
                     </span>
                 </div>
                 <div class="community-feed-hero-actions">
+                    <?php if (!empty($can_post)): ?>
+                        <a href="/dashboard/community/create" class="community-hero-link">New Conversation</a>
+                    <?php endif; ?>
                     <a href="/dashboard" class="community-hero-link">Dashboard</a>
                     <?php if (!empty($can_post)): ?>
                         <a href="/my-posts" class="community-hero-link">My Posts</a>
@@ -141,46 +144,12 @@ $buildFeedUrl = static function (array $params = []) use ($is_admin, $selectedBa
             </nav>
 
             <?php if (!empty($can_post)): ?>
-                <article class="community-composer-card social-composer">
-                    <header class="social-composer-head">
-                        <h3>Start a conversation</h3>
-                        <p>Share announcements, questions, or helpful resources with your batch.</p>
-                    </header>
-                    <form method="POST" action="/dashboard/community" enctype="multipart/form-data" class="community-composer-form">
-                        <?= csrf_field() ?>
-                        <div class="social-composer-row">
-                            <span class="community-post-avatar"><?= e(ui_initials((string) (auth_user()['name'] ?? 'User'))) ?></span>
-                            <textarea id="body" name="body" rows="3" placeholder="What is happening in your batch today?"><?= e(old('body', '')) ?></textarea>
-                        </div>
-
-                        <div class="social-composer-controls">
-                            <div class="social-composer-inline-fields">
-                                <select id="post_type" name="post_type" required>
-                                    <?php $selectedType = old('post_type', $selectedPostType !== '' ? $selectedPostType : 'general'); ?>
-                                    <?php foreach ($post_types as $postType): ?>
-                                        <option value="<?= e($postType) ?>" <?= $selectedType === $postType ? 'selected' : '' ?>>
-                                            <?= e(community_post_type_label($postType)) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                                <select id="composer_subject_id" name="subject_id">
-                                    <option value="">General (No Subject)</option>
-                                    <?php $composerSubjectId = (int) old('subject_id', (string) $selectedSubjectId); ?>
-                                    <?php foreach ($subjectOptions as $subject): ?>
-                                        <?php $subjectId = (int) ($subject['id'] ?? 0); ?>
-                                        <option value="<?= $subjectId ?>" <?= $composerSubjectId === $subjectId ? 'selected' : '' ?>>
-                                            <?= e((string) ($subject['code'] ?? 'SUB')) ?> — <?= e((string) ($subject['name'] ?? '')) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                                <label class="social-upload-btn">
-                                    <input type="file" name="image" accept=".jpg,.jpeg,.png,.webp,.gif,image/*">
-                                    <span>Add Photo</span>
-                                </label>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Post to Feed</button>
-                        </div>
-                    </form>
+                <article class="community-composer-card community-compose-cta">
+                    <div class="community-compose-cta-copy">
+                        <strong>Share Something With Your Batch</strong>
+                        <p>Open the composer page for a focused posting experience.</p>
+                    </div>
+                    <a href="/dashboard/community/create" class="btn btn-primary">Start New Conversation</a>
                 </article>
             <?php endif; ?>
 
