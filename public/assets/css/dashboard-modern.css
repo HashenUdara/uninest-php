@@ -1624,6 +1624,24 @@
   gap: 12px;
 }
 
+.dashboard-body .community-load-more {
+  display: flex;
+  justify-content: center;
+  padding-top: 2px;
+}
+
+.dashboard-body .community-post-footer details {
+  display: block;
+}
+
+.dashboard-body .community-post-footer summary.community-action-btn {
+  list-style: none;
+}
+
+.dashboard-body .community-post-footer summary.community-action-btn::-webkit-details-marker {
+  display: none;
+}
+
 .dashboard-body .community-post-list .social-post-card {
   animation: social-feed-enter 0.35s ease both;
 }
@@ -2415,6 +2433,16 @@
   padding: 10px;
 }
 
+.dashboard-body .resource-comment-inline-form select {
+  height: 36px;
+  border: 1px solid #d3ddea;
+  border-radius: 10px;
+  padding: 0 11px;
+  background: #fbfdff;
+  font-size: 0.84rem;
+  color: #2d415d;
+}
+
 .dashboard-body .resource-comment-inline-form textarea {
   min-height: 82px;
   border: 1px solid #d3ddea;
@@ -2426,6 +2454,13 @@
 }
 
 .dashboard-body .resource-comment-inline-form textarea:focus {
+  outline: none;
+  border-color: rgba(var(--dash-brand-rgb), 0.45);
+  box-shadow: 0 0 0 3px rgba(var(--dash-brand-rgb), 0.14);
+  background: #fff;
+}
+
+.dashboard-body .resource-comment-inline-form select:focus {
   outline: none;
   border-color: rgba(var(--dash-brand-rgb), 0.45);
   box-shadow: 0 0 0 3px rgba(var(--dash-brand-rgb), 0.14);

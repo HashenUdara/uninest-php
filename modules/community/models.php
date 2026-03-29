@@ -109,7 +109,7 @@ function community_posts_for_batch(
         ];
     }
 
-    $page = max(1, $page);
+    $page = max(1, min(50, $page));
     $perPage = max(1, min(30, $perPage));
     $visibleLimit = $page * $perPage;
     $queryLimit = $visibleLimit + 1;
@@ -724,6 +724,8 @@ function community_reports_queue(?int $batchId, bool $isAdmin): array
 
     return db_fetch_all(
         "SELECT r.*,
+                b.batch_code AS report_batch_code,
+                b.name AS report_batch_name,
                 reporter.name AS reporter_name,
                 reviewer.name AS reviewer_name,
                 CASE
@@ -765,6 +767,7 @@ function community_reports_queue(?int $batchId, bool $isAdmin): array
                     ELSE 0
                 END AS target_exists
          FROM feed_reports r
+         LEFT JOIN batches b ON b.id = r.batch_id
          LEFT JOIN users reporter ON reporter.id = r.reporter_user_id
          LEFT JOIN users reviewer ON reviewer.id = r.reviewed_by_user_id
          LEFT JOIN feed_posts p
@@ -811,6 +814,8 @@ function community_find_report_queue_item(int $reportId, ?int $batchId, bool $is
 
     return db_fetch(
         "SELECT r.*,
+                b.batch_code AS report_batch_code,
+                b.name AS report_batch_name,
                 reporter.name AS reporter_name,
                 reviewer.name AS reviewer_name,
                 CASE
@@ -853,6 +858,7 @@ function community_find_report_queue_item(int $reportId, ?int $batchId, bool $is
                     ELSE 0
                 END AS target_exists
          FROM feed_reports r
+         LEFT JOIN batches b ON b.id = r.batch_id
          LEFT JOIN users reporter ON reporter.id = r.reporter_user_id
          LEFT JOIN users reviewer ON reviewer.id = r.reviewed_by_user_id
          LEFT JOIN feed_posts p

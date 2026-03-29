@@ -33,6 +33,59 @@ function community_user_can_post(): bool
     return (int) (auth_user()['batch_id'] ?? 0) > 0;
 }
 
+function community_user_can_save_posts(): bool
+{
+    $role = (string) user_role();
+    if ($role === 'admin') {
+        return true;
+    }
+
+    return in_array($role, ['student', 'coordinator', 'moderator'], true);
+}
+
+function community_user_can_moderate_batch(int $batchId): bool
+{
+    if ($batchId <= 0) {
+        return false;
+    }
+
+    $role = (string) user_role();
+    if ($role === 'admin') {
+        return true;
+    }
+
+    if ($role !== 'moderator') {
+        return false;
+    }
+
+    return (int) (auth_user()['batch_id'] ?? 0) === $batchId;
+}
+
+function community_feed_per_page(): int
+{
+    return 10;
+}
+
+function community_max_pinned_announcements_per_batch(): int
+{
+    return 3;
+}
+
+function community_report_max_details_length(): int
+{
+    return 1000;
+}
+
+function community_report_reason_options_with_labels(): array
+{
+    $options = [];
+    foreach (community_report_reasons() as $reason) {
+        $options[$reason] = community_report_reason_label($reason);
+    }
+
+    return $options;
+}
+
 function community_feed_url_for_batch(int $batchId): string
 {
     if (user_role() === 'admin') {
@@ -40,6 +93,15 @@ function community_feed_url_for_batch(int $batchId): string
     }
 
     return '/dashboard/community';
+}
+
+function community_reports_queue_url(?int $batchId = null): string
+{
+    if (user_role() === 'admin' && $batchId !== null && $batchId > 0) {
+        return '/dashboard/community/reports?batch_id=' . $batchId;
+    }
+
+    return '/dashboard/community/reports';
 }
 
 function community_post_url(array $post): string
@@ -63,6 +125,7 @@ function community_resolve_valid_return_to(string $returnTo, array $post, string
         if (
             str_starts_with($path, '/dashboard/community')
             || str_starts_with($path, '/my-posts')
+            || str_starts_with($path, '/saved-posts')
         ) {
             return $raw;
         }
@@ -392,12 +455,7 @@ function community_post_can_delete(array $post): bool
         return true;
     }
 
-    if ($role !== 'moderator') {
-        return false;
-    }
-
-    $moderatorBatchId = (int) (auth_user()['batch_id'] ?? 0);
-    return $moderatorBatchId > 0 && $moderatorBatchId === (int) ($post['batch_id'] ?? 0);
+    return community_user_can_moderate_batch((int) ($post['batch_id'] ?? 0));
 }
 
 function community_comment_can_delete(array $post, array $comment): bool
@@ -412,12 +470,65 @@ function community_comment_can_delete(array $post, array $comment): bool
         return true;
     }
 
-    if ($role !== 'moderator') {
+    return community_user_can_moderate_batch((int) ($post['batch_id'] ?? 0));
+}
+
+function community_post_can_pin(array $post): bool
+{
+    if ((string) ($post['post_type'] ?? '') !== 'announcement') {
         return false;
     }
 
-    $moderatorBatchId = (int) (auth_user()['batch_id'] ?? 0);
-    return $moderatorBatchId > 0 && $moderatorBatchId === (int) ($post['batch_id'] ?? 0);
+    return community_user_can_moderate_batch((int) ($post['batch_id'] ?? 0));
+}
+
+function community_post_can_resolve_question(array $post): bool
+{
+    if ((string) ($post['post_type'] ?? '') !== 'question') {
+        return false;
+    }
+
+    return (int) ($post['author_user_id'] ?? 0) === (int) auth_id();
+}
+
+function community_validate_report_reason(string $reason): string
+{
+    $normalized = trim($reason);
+    if (in_array($normalized, community_report_reasons(), true)) {
+        return $normalized;
+    }
+
+    return 'other';
+}
+
+function community_validate_report_details(string $details): ?string
+{
+    $normalized = trim(str_replace(["\r\n", "\r"], "\n", $details));
+    if ($normalized === '') {
+        return null;
+    }
+
+    if (strlen($normalized) > community_report_max_details_length()) {
+        return substr($normalized, 0, community_report_max_details_length());
+    }
+
+    return $normalized;
+}
+
+function community_resolve_open_reports_for_post_comments(int $postId, int $reviewerUserId, string $actionTaken): void
+{
+    if ($postId <= 0 || $reviewerUserId <= 0) {
+        return;
+    }
+
+    $commentRows = comments_rows_for_target('feed_post', $postId);
+    foreach ($commentRows as $commentRow) {
+        $commentId = (int) ($commentRow['id'] ?? 0);
+        if ($commentId <= 0) {
+            continue;
+        }
+        community_resolve_open_reports_for_target('comment', $commentId, $reviewerUserId, $actionTaken);
+    }
 }
 
 function community_enrich_comment_tree(array $nodes, array $post): array
@@ -483,11 +594,26 @@ function community_index(): void
         $selectedSort = 'recent';
     }
 
+    $selectedSearchQuery = trim((string) request_input('q', ''));
+    if (strlen($selectedSearchQuery) > 120) {
+        $selectedSearchQuery = substr($selectedSearchQuery, 0, 120);
+    }
+
+    $selectedPage = max(1, min(50, (int) request_input('page', 1)));
     $selectedSubjectFilter = $selectedSubjectId > 0 ? $selectedSubjectId : null;
 
-    $posts = $selectedBatchId > 0
-        ? community_posts_for_batch($selectedBatchId, $selectedSubjectFilter, $selectedPostType !== '' ? $selectedPostType : null, $selectedSort, $viewerId)
-        : [];
+    $feedPage = $selectedBatchId > 0
+        ? community_posts_for_batch(
+            $selectedBatchId,
+            $selectedSubjectFilter,
+            $selectedPostType !== '' ? $selectedPostType : null,
+            $selectedSort,
+            $viewerId,
+            $selectedSearchQuery,
+            $selectedPage,
+            community_feed_per_page()
+        )
+        : ['posts' => [], 'has_more' => false];
 
     $postTypeCounts = $selectedBatchId > 0
         ? community_post_type_counts_for_batch($selectedBatchId, $selectedSubjectFilter)
@@ -506,11 +632,16 @@ function community_index(): void
         'selected_subject_id' => $selectedSubjectId,
         'selected_post_type' => $selectedPostType,
         'selected_sort' => $selectedSort,
+        'selected_search_query' => $selectedSearchQuery,
+        'selected_page' => $selectedPage,
         'post_types' => community_post_types(),
         'post_type_counts' => $postTypeCounts,
         'popular_posts' => $popularPosts,
-        'posts' => $posts,
+        'posts' => (array) ($feedPage['posts'] ?? []),
+        'has_more_posts' => !empty($feedPage['has_more']),
         'can_post' => community_user_can_post(),
+        'can_save_posts' => community_user_can_save_posts(),
+        'report_reason_options' => community_report_reason_options_with_labels(),
     ], 'dashboard');
 }
 
@@ -608,6 +739,10 @@ function community_show(string $id): void
         'comment_max_level' => comments_max_depth_for_target('feed_post') + 1,
         'can_edit_post' => (int) ($post['author_user_id'] ?? 0) === (int) auth_id(),
         'can_delete_post' => community_post_can_delete($post),
+        'can_save_posts' => community_user_can_save_posts(),
+        'can_resolve_question' => community_post_can_resolve_question($post),
+        'can_pin_post' => community_post_can_pin($post),
+        'report_reason_options' => community_report_reason_options_with_labels(),
         'back_feed_url' => community_feed_url_for_batch((int) ($post['batch_id'] ?? 0)),
     ], 'dashboard');
 }
@@ -716,6 +851,391 @@ function community_like_toggle(string $id): void
         $post
     );
     redirect($returnTo);
+}
+
+function community_save_toggle(string $id): void
+{
+    csrf_check();
+
+    if (!community_user_can_save_posts()) {
+        abort(403, 'You do not have permission to save posts.');
+    }
+
+    $postId = (int) $id;
+    $post = community_resolve_readable_post($postId);
+    if (!$post) {
+        abort(404, 'Post not found.');
+    }
+
+    $isSaved = community_toggle_save($postId, (int) auth_id());
+    flash('success', $isSaved ? 'Post saved.' : 'Post removed from saved posts.');
+
+    $returnTo = community_resolve_valid_return_to(
+        (string) request_input('return_to', ''),
+        $post
+    );
+    redirect($returnTo);
+}
+
+function community_report_post(string $id): void
+{
+    csrf_check();
+
+    $postId = (int) $id;
+    $post = community_resolve_readable_post($postId);
+    if (!$post) {
+        abort(404, 'Post not found.');
+    }
+
+    $returnTo = community_resolve_valid_return_to(
+        (string) request_input('return_to', ''),
+        $post
+    );
+
+    $viewerId = (int) auth_id();
+    if ((int) ($post['author_user_id'] ?? 0) === $viewerId) {
+        flash('error', 'You cannot report your own post.');
+        redirect($returnTo);
+    }
+
+    $reason = community_validate_report_reason((string) request_input('reason', 'other'));
+    $details = community_validate_report_details((string) request_input('details', ''));
+    $alreadyOpen = community_find_open_report_for_target($viewerId, 'post', $postId);
+
+    if ($alreadyOpen) {
+        flash('warning', 'You already have an open report for this post.');
+        redirect($returnTo);
+    }
+
+    try {
+        community_create_report([
+            'batch_id' => (int) ($post['batch_id'] ?? 0),
+            'target_type' => 'post',
+            'target_id' => $postId,
+            'reporter_user_id' => $viewerId,
+            'reason' => $reason,
+            'details' => $details,
+        ]);
+    } catch (Throwable) {
+        flash('error', 'Unable to submit report right now.');
+        redirect($returnTo);
+    }
+
+    flash('success', 'Post reported. Moderators will review it.');
+    redirect($returnTo);
+}
+
+function community_comment_report(string $id, string $commentId): void
+{
+    csrf_check();
+
+    $postId = (int) $id;
+    $post = community_resolve_readable_post($postId);
+    if (!$post) {
+        abort(404, 'Post not found.');
+    }
+
+    $commentIdInt = (int) $commentId;
+    $comment = comments_find_target_comment($commentIdInt, 'feed_post', $postId);
+    if (!$comment) {
+        abort(404, 'Comment not found.');
+    }
+
+    $postPath = community_post_url($post) . '#post-comments';
+    $viewerId = (int) auth_id();
+    if ((int) ($comment['user_id'] ?? 0) === $viewerId) {
+        flash('error', 'You cannot report your own comment.');
+        redirect($postPath);
+    }
+
+    $reason = community_validate_report_reason((string) request_input('reason', 'other'));
+    $details = community_validate_report_details((string) request_input('details', ''));
+    $alreadyOpen = community_find_open_report_for_target($viewerId, 'comment', $commentIdInt);
+
+    if ($alreadyOpen) {
+        flash('warning', 'You already have an open report for this comment.');
+        redirect($postPath);
+    }
+
+    try {
+        community_create_report([
+            'batch_id' => (int) ($post['batch_id'] ?? 0),
+            'target_type' => 'comment',
+            'target_id' => $commentIdInt,
+            'reporter_user_id' => $viewerId,
+            'reason' => $reason,
+            'details' => $details,
+        ]);
+    } catch (Throwable) {
+        flash('error', 'Unable to submit report right now.');
+        redirect($postPath);
+    }
+
+    flash('success', 'Comment reported. Moderators will review it.');
+    redirect($postPath);
+}
+
+function community_question_resolve(string $id): void
+{
+    csrf_check();
+
+    $postId = (int) $id;
+    $post = community_resolve_readable_post($postId);
+    if (!$post) {
+        abort(404, 'Post not found.');
+    }
+
+    if (!community_post_can_resolve_question($post)) {
+        abort(403, 'Only the question author can mark this as solved.');
+    }
+
+    if (!community_set_question_resolved_state($postId, (int) auth_id(), true)) {
+        flash('error', 'Unable to mark this question as solved.');
+    } else {
+        flash('success', 'Question marked as solved.');
+    }
+
+    $returnTo = community_resolve_valid_return_to(
+        (string) request_input('return_to', ''),
+        $post
+    );
+    redirect($returnTo);
+}
+
+function community_question_reopen(string $id): void
+{
+    csrf_check();
+
+    $postId = (int) $id;
+    $post = community_resolve_readable_post($postId);
+    if (!$post) {
+        abort(404, 'Post not found.');
+    }
+
+    if (!community_post_can_resolve_question($post)) {
+        abort(403, 'Only the question author can reopen this question.');
+    }
+
+    if (!community_set_question_resolved_state($postId, (int) auth_id(), false)) {
+        flash('error', 'Unable to reopen this question.');
+    } else {
+        flash('success', 'Question reopened.');
+    }
+
+    $returnTo = community_resolve_valid_return_to(
+        (string) request_input('return_to', ''),
+        $post
+    );
+    redirect($returnTo);
+}
+
+function community_pin_post(string $id): void
+{
+    csrf_check();
+
+    $postId = (int) $id;
+    $post = community_resolve_readable_post($postId);
+    if (!$post) {
+        abort(404, 'Post not found.');
+    }
+
+    if (!community_post_can_pin($post)) {
+        abort(403, 'You do not have permission to pin this post.');
+    }
+
+    $batchId = (int) ($post['batch_id'] ?? 0);
+    if ((int) ($post['is_pinned'] ?? 0) !== 1) {
+        $pinnedCount = community_pinned_announcement_count_for_batch($batchId);
+        if ($pinnedCount >= community_max_pinned_announcements_per_batch()) {
+            flash('error', 'Only ' . community_max_pinned_announcements_per_batch() . ' announcements can be pinned at once.');
+            redirect(community_resolve_valid_return_to((string) request_input('return_to', ''), $post));
+        }
+    }
+
+    if (!community_set_post_pin_state($postId, $batchId, (int) auth_id(), true)) {
+        flash('error', 'Unable to pin this announcement.');
+    } else {
+        flash('success', 'Announcement pinned.');
+    }
+
+    $returnTo = community_resolve_valid_return_to(
+        (string) request_input('return_to', ''),
+        $post
+    );
+    redirect($returnTo);
+}
+
+function community_unpin_post(string $id): void
+{
+    csrf_check();
+
+    $postId = (int) $id;
+    $post = community_resolve_readable_post($postId);
+    if (!$post) {
+        abort(404, 'Post not found.');
+    }
+
+    if (!community_post_can_pin($post)) {
+        abort(403, 'You do not have permission to unpin this post.');
+    }
+
+    if (!community_set_post_pin_state($postId, (int) ($post['batch_id'] ?? 0), (int) auth_id(), false)) {
+        flash('error', 'Unable to unpin this announcement.');
+    } else {
+        flash('success', 'Announcement unpinned.');
+    }
+
+    $returnTo = community_resolve_valid_return_to(
+        (string) request_input('return_to', ''),
+        $post
+    );
+    redirect($returnTo);
+}
+
+function community_reports_index(): void
+{
+    $role = (string) user_role();
+    $isAdmin = $role === 'admin';
+    if (!$isAdmin && $role !== 'moderator') {
+        abort(403, 'You do not have permission to access moderation reports.');
+    }
+
+    $batchOptions = $isAdmin ? community_batch_options_for_admin() : [];
+    $selectedBatchId = 0;
+    if ($isAdmin) {
+        $selectedBatchId = (int) request_input('batch_id', 0);
+        if ($selectedBatchId > 0 && !community_find_batch_option_by_id($selectedBatchId)) {
+            $selectedBatchId = 0;
+        }
+    } else {
+        $selectedBatchId = (int) (auth_user()['batch_id'] ?? 0);
+        if ($selectedBatchId <= 0) {
+            abort(403, 'You are not assigned to a batch.');
+        }
+    }
+
+    $reports = community_reports_queue($selectedBatchId > 0 ? $selectedBatchId : null, $isAdmin);
+    $openCount = 0;
+    foreach ($reports as $report) {
+        if ((string) ($report['status'] ?? '') === 'open') {
+            $openCount++;
+        }
+    }
+
+    view('community::reports', [
+        'is_admin' => $isAdmin,
+        'batch_options' => $batchOptions,
+        'selected_batch_id' => $selectedBatchId,
+        'active_batch' => $selectedBatchId > 0 ? community_find_batch_option_by_id($selectedBatchId) : null,
+        'reports' => $reports,
+        'open_count' => $openCount,
+    ], 'dashboard');
+}
+
+function community_report_dismiss(string $id): void
+{
+    csrf_check();
+
+    $reportId = (int) $id;
+    $role = (string) user_role();
+    $isAdmin = $role === 'admin';
+    if (!$isAdmin && $role !== 'moderator') {
+        abort(403, 'You do not have permission to moderate reports.');
+    }
+
+    $batchId = $isAdmin ? null : (int) (auth_user()['batch_id'] ?? 0);
+    $report = community_find_report_queue_item($reportId, $batchId, $isAdmin);
+    if (!$report) {
+        abort(404, 'Report not found.');
+    }
+
+    if ((string) ($report['status'] ?? '') !== 'open') {
+        flash('warning', 'This report is already closed.');
+        redirect(community_reports_queue_url($isAdmin ? (int) ($report['batch_id'] ?? 0) : null));
+    }
+
+    if (!community_dismiss_report($reportId, (int) auth_id())) {
+        flash('error', 'Unable to dismiss this report.');
+    } else {
+        flash('success', 'Report dismissed.');
+    }
+
+    redirect(community_reports_queue_url($isAdmin ? (int) ($report['batch_id'] ?? 0) : null));
+}
+
+function community_report_remove(string $id): void
+{
+    csrf_check();
+
+    $reportId = (int) $id;
+    $role = (string) user_role();
+    $isAdmin = $role === 'admin';
+    if (!$isAdmin && $role !== 'moderator') {
+        abort(403, 'You do not have permission to moderate reports.');
+    }
+
+    $batchId = $isAdmin ? null : (int) (auth_user()['batch_id'] ?? 0);
+    $report = community_find_report_queue_item($reportId, $batchId, $isAdmin);
+    if (!$report) {
+        abort(404, 'Report not found.');
+    }
+
+    if ((string) ($report['status'] ?? '') !== 'open') {
+        flash('warning', 'This report is already closed.');
+        redirect(community_reports_queue_url($isAdmin ? (int) ($report['batch_id'] ?? 0) : null));
+    }
+
+    $reviewerId = (int) auth_id();
+    $targetType = (string) ($report['target_type'] ?? '');
+    $targetId = (int) ($report['target_id'] ?? 0);
+    $actionTaken = 'target_missing';
+
+    if ($targetType === 'post') {
+        $post = community_find_post_admin($targetId, $reviewerId);
+        if ($post) {
+            if (!community_user_can_moderate_batch((int) ($post['batch_id'] ?? 0))) {
+                abort(403, 'You do not have permission to remove this post.');
+            }
+
+            $actionTaken = 'removed_post';
+            community_resolve_open_reports_for_post_comments($targetId, $reviewerId, $actionTaken);
+
+            $imagePath = $post['image_path'] ?? null;
+            if (!community_delete_post_by_id($targetId)) {
+                flash('error', 'Unable to remove reported post.');
+                redirect(community_reports_queue_url($isAdmin ? (int) ($report['batch_id'] ?? 0) : null));
+            }
+
+            community_cleanup_file_paths([$imagePath]);
+        }
+    } elseif ($targetType === 'comment') {
+        $comment = comments_find_by_id($targetId);
+        if ($comment && (string) ($comment['target_type'] ?? '') === 'feed_post') {
+            $threadPostId = (int) ($comment['target_id'] ?? 0);
+            if ($threadPostId > 0) {
+                $threadPost = community_find_post_admin($threadPostId, $reviewerId);
+                if ($threadPost) {
+                    if (!community_user_can_moderate_batch((int) ($threadPost['batch_id'] ?? 0))) {
+                        abort(403, 'You do not have permission to remove this comment.');
+                    }
+
+                    $actionTaken = 'removed_comment';
+                    comments_delete_by_id($targetId);
+                }
+            }
+        }
+    } else {
+        flash('error', 'Invalid report target.');
+        redirect(community_reports_queue_url($isAdmin ? (int) ($report['batch_id'] ?? 0) : null));
+    }
+
+    $resolvedCount = community_resolve_open_reports_for_target($targetType, $targetId, $reviewerId, $actionTaken);
+    if ($resolvedCount === 0) {
+        community_resolve_report($reportId, $reviewerId, $actionTaken);
+    }
+
+    flash('success', $actionTaken === 'target_missing' ? 'Report closed. Target was already removed.' : 'Reported content removed and report resolved.');
+    redirect(community_reports_queue_url($isAdmin ? (int) ($report['batch_id'] ?? 0) : null));
 }
 
 function community_comment_store(string $id): void
@@ -831,6 +1351,23 @@ function community_comment_delete(string $id, string $commentId): void
 
     flash('success', 'Comment deleted.');
     redirect($postPath . '#post-comments');
+}
+
+function community_saved_posts_index(): void
+{
+    if (!community_user_can_save_posts()) {
+        abort(403, 'You do not have permission to access saved posts.');
+    }
+
+    $isAdmin = user_role() === 'admin';
+    $batchId = $isAdmin ? null : (int) (auth_user()['batch_id'] ?? 0);
+    if (!$isAdmin && ($batchId === null || $batchId <= 0)) {
+        abort(403, 'You are not assigned to a batch.');
+    }
+
+    view('community::saved', [
+        'posts' => community_saved_posts_for_user((int) auth_id(), $batchId, $isAdmin),
+    ], 'dashboard');
 }
 
 function community_my_index(): void

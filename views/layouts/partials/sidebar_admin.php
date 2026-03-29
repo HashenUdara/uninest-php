@@ -6,6 +6,8 @@ $isStudentCreate = $currentPath === '/students/create';
 $isStudents = str_starts_with($currentPath, '/students') && !$isStudentCreate;
 $isBatches = str_starts_with($currentPath, '/admin/batches');
 $isModerators = str_starts_with($currentPath, '/admin/moderators');
+$isCommunityReports = str_starts_with($currentPath, '/dashboard/community/reports');
+$isCommunityFeed = str_starts_with($currentPath, '/dashboard/community') && !$isCommunityReports;
 ?>
 <nav class="sidebar-nav">
     <div class="sidebar-section-label">Overview</div>
@@ -21,7 +23,9 @@ $isModerators = str_starts_with($currentPath, '/admin/moderators');
 
     <div class="sidebar-section-label">Content</div>
     <ul>
-        <li><a href="/dashboard/community" data-icon="CF" class="<?= str_starts_with($currentPath, '/dashboard/community') ? 'active' : '' ?>"><span>Community Feed</span></a></li>
+        <li><a href="/dashboard/community" data-icon="CF" class="<?= $isCommunityFeed ? 'active' : '' ?>"><span>Community Feed</span></a></li>
+        <li><a href="/saved-posts" data-icon="SV" class="<?= str_starts_with($currentPath, '/saved-posts') ? 'active' : '' ?>"><span>Saved Posts</span></a></li>
+        <li><a href="/dashboard/community/reports" data-icon="RQ" class="<?= $isCommunityReports ? 'active' : '' ?>"><span>Reports Queue</span></a></li>
         <li><a href="/subjects" data-icon="SB" class="<?= $isSubjects ? 'active' : '' ?>"><span>Subjects</span></a></li>
         <li><a href="/subjects/create" data-icon="NW" class="<?= $isSubjectCreate ? 'active' : '' ?>"><span>New Subject</span></a></li>
         <li><a href="/my-resources" data-icon="RS" class="<?= str_starts_with($currentPath, '/my-resources') ? 'active' : '' ?>"><span>My Resources</span></a></li>

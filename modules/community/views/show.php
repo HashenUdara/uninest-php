@@ -6,9 +6,15 @@ if ($authorName === '') {
 }
 $hasImage = trim((string) ($post['image_path'] ?? '')) !== '';
 $likedByViewer = (int) ($post['is_liked_by_viewer'] ?? 0) === 1;
+$savedByViewer = (int) ($post['is_saved_by_viewer'] ?? 0) === 1;
 $commentCount = (int) ($post['comment_count'] ?? 0);
 $currentUri = (string) ($_SERVER['REQUEST_URI'] ?? ('/dashboard/community/' . $postId));
 $postType = (string) ($post['post_type'] ?? 'general');
+$isPinnedAnnouncement = $postType === 'announcement' && (int) ($post['is_pinned'] ?? 0) === 1;
+$isResolvedQuestion = $postType === 'question' && (int) ($post['is_resolved'] ?? 0) === 1;
+$viewerId = (int) auth_id();
+$canReportPost = (int) ($post['author_user_id'] ?? 0) !== $viewerId;
+$reportReasonOptions = (array) ($report_reason_options ?? []);
 ?>
 
 <div class="page-header">
@@ -49,6 +55,12 @@ $postType = (string) ($post['post_type'] ?? 'general');
         </div>
         <div class="community-post-badges">
             <span class="badge <?= e(community_post_type_badge_class($postType)) ?>"><?= e(community_post_type_label($postType)) ?></span>
+            <?php if ($isPinnedAnnouncement): ?>
+                <span class="badge badge-warning">Pinned</span>
+            <?php endif; ?>
+            <?php if ($isResolvedQuestion): ?>
+                <span class="badge badge-info">Solved</span>
+            <?php endif; ?>
             <?php if (!empty($post['subject_name'])): ?>
                 <span class="badge"><?= e((string) $post['subject_name']) ?></span>
             <?php endif; ?>
@@ -80,6 +92,33 @@ $postType = (string) ($post['post_type'] ?? 'general');
                     <?= $likedByViewer ? 'Liked' : 'Like' ?>
                 </button>
             </form>
+            <?php if (!empty($can_save_posts)): ?>
+                <form method="POST" action="/dashboard/community/<?= $postId ?>/save">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="return_to" value="<?= e($currentUri) ?>">
+                    <button type="submit" class="btn btn-sm <?= $savedByViewer ? 'btn-primary' : 'btn-outline' ?>">
+                        <?= $savedByViewer ? 'Saved' : 'Save' ?>
+                    </button>
+                </form>
+            <?php endif; ?>
+            <?php if (!empty($can_resolve_question)): ?>
+                <form method="POST" action="/dashboard/community/<?= $postId ?>/question/<?= $isResolvedQuestion ? 'reopen' : 'resolve' ?>">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="return_to" value="<?= e($currentUri) ?>">
+                    <button type="submit" class="btn btn-sm btn-outline">
+                        <?= $isResolvedQuestion ? 'Reopen' : 'Mark Solved' ?>
+                    </button>
+                </form>
+            <?php endif; ?>
+            <?php if (!empty($can_pin_post)): ?>
+                <form method="POST" action="/dashboard/community/<?= $postId ?>/<?= $isPinnedAnnouncement ? 'unpin' : 'pin' ?>">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="return_to" value="<?= e($currentUri) ?>">
+                    <button type="submit" class="btn btn-sm btn-outline">
+                        <?= $isPinnedAnnouncement ? 'Unpin' : 'Pin' ?>
+                    </button>
+                </form>
+            <?php endif; ?>
             <?php if (!empty($can_delete_post)): ?>
                 <form method="POST" action="/dashboard/community/<?= $postId ?>/delete" onsubmit="return confirm('Delete this post? This will also delete all comments.');">
                     <?= csrf_field() ?>
@@ -88,6 +127,31 @@ $postType = (string) ($post['post_type'] ?? 'general');
             <?php endif; ?>
         </div>
     </footer>
+
+    <?php if ($canReportPost): ?>
+        <div class="community-post-footer">
+            <details>
+                <summary class="community-action-btn">Report Post</summary>
+                <form method="POST" action="/dashboard/community/<?= $postId ?>/report" class="community-composer-form" style="margin-top: 8px; max-width: 520px;">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="return_to" value="<?= e($currentUri) ?>">
+                    <div class="form-group">
+                        <label for="post-report-reason">Reason</label>
+                        <select id="post-report-reason" name="reason" required>
+                            <?php foreach ($reportReasonOptions as $reasonValue => $reasonLabel): ?>
+                                <option value="<?= e((string) $reasonValue) ?>"><?= e((string) $reasonLabel) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="post-report-details">Details (Optional)</label>
+                        <textarea id="post-report-details" name="details" rows="2" maxlength="1000" placeholder="Share context for moderators..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-outline">Submit Report</button>
+                </form>
+            </details>
+        </div>
+    <?php endif; ?>
 </article>
 
 <?php if (!empty($can_edit_post)): ?>
@@ -174,7 +238,7 @@ $postType = (string) ($post['post_type'] ?? 'general');
         <?php else: ?>
             <div class="resource-comments-list">
                 <?php
-                $renderComments = function (array $nodes) use (&$renderComments, $postId): void {
+                $renderComments = function (array $nodes) use (&$renderComments, $postId, $viewerId, $reportReasonOptions): void {
                     foreach ($nodes as $comment):
                         $commentId = (int) ($comment['id'] ?? 0);
                         $author = trim((string) ($comment['user_name'] ?? ''));
@@ -221,6 +285,22 @@ $postType = (string) ($post['post_type'] ?? 'general');
                                                 <?= csrf_field() ?>
                                                 <button type="submit" class="resource-comment-action-btn is-danger">Delete</button>
                                             </form>
+                                        <?php endif; ?>
+
+                                        <?php if ((int) ($comment['user_id'] ?? 0) !== $viewerId): ?>
+                                            <details class="resource-comment-action-block">
+                                                <summary class="resource-comment-action-btn">Report</summary>
+                                                <form method="POST" action="/dashboard/community/<?= $postId ?>/comments/<?= $commentId ?>/report" class="resource-comment-inline-form">
+                                                    <?= csrf_field() ?>
+                                                    <select name="reason" required>
+                                                        <?php foreach ($reportReasonOptions as $reasonValue => $reasonLabel): ?>
+                                                            <option value="<?= e((string) $reasonValue) ?>"><?= e((string) $reasonLabel) ?></option>
+                                                        <?php endforeach; ?>
+                                                    </select>
+                                                    <textarea name="details" rows="2" maxlength="1000" placeholder="Optional details..."></textarea>
+                                                    <button type="submit" class="btn btn-sm btn-outline">Submit</button>
+                                                </form>
+                                            </details>
                                         <?php endif; ?>
                                     </div>
                                 </div>

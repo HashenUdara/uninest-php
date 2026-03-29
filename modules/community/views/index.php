@@ -4,11 +4,15 @@ $selectedBatchId = (int) ($selected_batch_id ?? 0);
 $selectedSubjectId = (int) ($selected_subject_id ?? 0);
 $selectedPostType = (string) ($selected_post_type ?? '');
 $selectedSort = (string) ($selected_sort ?? 'recent');
+$selectedSearchQuery = (string) ($selected_search_query ?? '');
+$selectedPage = max(1, (int) ($selected_page ?? 1));
 $postTypeCounts = (array) ($post_type_counts ?? []);
 $popularPosts = (array) ($popular_posts ?? []);
 $subjectOptions = (array) ($subject_options ?? []);
 $feedPosts = (array) ($posts ?? []);
+$hasMorePosts = !empty($has_more_posts);
 $activeBatch = (array) ($active_batch ?? []);
+$viewerId = (int) auth_id();
 
 $activeBatchCode = trim((string) ($activeBatch['batch_code'] ?? ''));
 $activeBatchName = trim((string) ($activeBatch['name'] ?? ''));
@@ -42,7 +46,7 @@ if ($selectedSubjectId > 0) {
 $selectedTypeLabel = $selectedPostType !== '' ? community_post_type_label($selectedPostType) : 'All Posts';
 $selectedSortLabel = $selectedSort === 'top' ? 'Top Engaged' : 'Most Recent';
 
-$buildFeedUrl = static function (array $params = []) use ($is_admin, $selectedBatchId, $selectedSubjectId, $selectedSort): string {
+$buildFeedUrl = static function (array $params = []) use ($is_admin, $selectedBatchId, $selectedSubjectId, $selectedSort, $selectedPostType, $selectedSearchQuery): string {
     $query = [];
     if (!empty($is_admin) && $selectedBatchId > 0) {
         $query['batch_id'] = $selectedBatchId;
@@ -52,6 +56,12 @@ $buildFeedUrl = static function (array $params = []) use ($is_admin, $selectedBa
     }
     if ($selectedSort !== 'recent') {
         $query['sort'] = $selectedSort;
+    }
+    if ($selectedPostType !== '') {
+        $query['post_type'] = $selectedPostType;
+    }
+    if ($selectedSearchQuery !== '') {
+        $query['q'] = $selectedSearchQuery;
     }
 
     foreach ($params as $key => $value) {
@@ -131,27 +141,17 @@ $buildFeedUrl = static function (array $params = []) use ($is_admin, $selectedBa
                     <span>All Posts</span>
                     <span class="community-category-count"><?= $allCount ?></span>
                 </a>
-                <?php foreach ($post_types as $postType): ?>
-                    <?php
-                    $isActive = $selectedPostType === $postType;
-                    $typeCount = (int) ($postTypeCounts[$postType] ?? 0);
-                    ?>
+            <?php foreach ($post_types as $postType): ?>
+                <?php
+                $isActive = $selectedPostType === $postType;
+                $typeCount = (int) ($postTypeCounts[$postType] ?? 0);
+                ?>
                     <a href="<?= e($buildFeedUrl(['post_type' => $postType])) ?>" class="community-category-pill <?= $isActive ? 'is-active' : '' ?>">
                         <span><?= e(community_post_type_label($postType)) ?></span>
                         <span class="community-category-count"><?= $typeCount ?></span>
                     </a>
                 <?php endforeach; ?>
             </nav>
-
-            <?php if (!empty($can_post)): ?>
-                <article class="community-composer-card community-compose-cta">
-                    <div class="community-compose-cta-copy">
-                        <strong>Share Something With Your Batch</strong>
-                        <p>Open the composer page for a focused posting experience.</p>
-                    </div>
-                    <a href="/dashboard/community/create" class="btn btn-primary">Start New Conversation</a>
-                </article>
-            <?php endif; ?>
 
             <?php if (empty($feedPosts)): ?>
                 <article class="community-post-card community-empty-state">
@@ -171,6 +171,12 @@ $buildFeedUrl = static function (array $params = []) use ($is_admin, $selectedBa
                         $postBody = trim((string) ($post['body'] ?? ''));
                         $hasImage = trim((string) ($post['image_path'] ?? '')) !== '';
                         $badgeClass = community_post_type_badge_class((string) ($post['post_type'] ?? 'general'));
+                        $isSavedByViewer = (int) ($post['is_saved_by_viewer'] ?? 0) === 1;
+                        $postType = (string) ($post['post_type'] ?? 'general');
+                        $isResolvedQuestion = $postType === 'question' && (int) ($post['is_resolved'] ?? 0) === 1;
+                        $canResolveQuestion = $postType === 'question' && (int) ($post['author_user_id'] ?? 0) === $viewerId;
+                        $isPinnedAnnouncement = $postType === 'announcement' && (int) ($post['is_pinned'] ?? 0) === 1;
+                        $canPinAnnouncement = $postType === 'announcement' && community_user_can_moderate_batch((int) ($post['batch_id'] ?? 0));
                         ?>
                         <article class="community-post-card social-post-card">
                             <header class="community-post-header">
@@ -187,7 +193,13 @@ $buildFeedUrl = static function (array $params = []) use ($is_admin, $selectedBa
                                     </div>
                                 </div>
                                 <div class="community-post-badges">
-                                    <span class="badge <?= e($badgeClass) ?>"><?= e(community_post_type_label((string) ($post['post_type'] ?? 'general'))) ?></span>
+                                    <span class="badge <?= e($badgeClass) ?>"><?= e(community_post_type_label($postType)) ?></span>
+                                    <?php if ($isPinnedAnnouncement): ?>
+                                        <span class="badge badge-warning">Pinned</span>
+                                    <?php endif; ?>
+                                    <?php if ($isResolvedQuestion): ?>
+                                        <span class="badge badge-info">Solved</span>
+                                    <?php endif; ?>
                                     <?php if (!empty($post['subject_code'])): ?>
                                         <span class="badge"><?= e((string) $post['subject_code']) ?></span>
                                     <?php endif; ?>
@@ -217,12 +229,44 @@ $buildFeedUrl = static function (array $params = []) use ($is_admin, $selectedBa
                                         <?= $likedByViewer ? 'Liked' : 'Like' ?>
                                     </button>
                                 </form>
+                                <?php if (!empty($can_save_posts)): ?>
+                                    <form method="POST" action="/dashboard/community/<?= $postId ?>/save">
+                                        <?= csrf_field() ?>
+                                        <input type="hidden" name="return_to" value="<?= e($currentUri) ?>">
+                                        <button type="submit" class="community-action-btn <?= $isSavedByViewer ? 'is-active' : '' ?>">
+                                            <?= $isSavedByViewer ? 'Saved' : 'Save' ?>
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
+                                <?php if ($canResolveQuestion): ?>
+                                    <form method="POST" action="/dashboard/community/<?= $postId ?>/question/<?= $isResolvedQuestion ? 'reopen' : 'resolve' ?>">
+                                        <?= csrf_field() ?>
+                                        <input type="hidden" name="return_to" value="<?= e($currentUri) ?>">
+                                        <button type="submit" class="community-action-btn">
+                                            <?= $isResolvedQuestion ? 'Reopen' : 'Mark Solved' ?>
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
+                                <?php if ($canPinAnnouncement): ?>
+                                    <form method="POST" action="/dashboard/community/<?= $postId ?>/<?= $isPinnedAnnouncement ? 'unpin' : 'pin' ?>">
+                                        <?= csrf_field() ?>
+                                        <input type="hidden" name="return_to" value="<?= e($currentUri) ?>">
+                                        <button type="submit" class="community-action-btn">
+                                            <?= $isPinnedAnnouncement ? 'Unpin' : 'Pin' ?>
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
                                 <a href="<?= e(community_post_url($post)) ?>" class="community-action-btn">Comment</a>
                                 <a href="<?= e(community_post_url($post)) ?>" class="community-action-btn">Open Thread</a>
                             </footer>
                         </article>
                     <?php endforeach; ?>
                 </section>
+                <?php if ($hasMorePosts): ?>
+                    <div class="community-load-more">
+                        <a href="<?= e($buildFeedUrl(['page' => $selectedPage + 1])) ?>" class="btn btn-outline">Load more posts</a>
+                    </div>
+                <?php endif; ?>
             <?php endif; ?>
         </main>
 
@@ -267,6 +311,11 @@ $buildFeedUrl = static function (array $params = []) use ($is_admin, $selectedBa
                         </select>
                     </div>
 
+                    <div class="form-group">
+                        <label for="q">Search</label>
+                        <input type="search" id="q" name="q" value="<?= e($selectedSearchQuery) ?>" placeholder="Search posts, author, subject">
+                    </div>
+
                     <?php if ($selectedPostType !== ''): ?>
                         <input type="hidden" name="post_type" value="<?= e($selectedPostType) ?>">
                     <?php endif; ?>
@@ -296,6 +345,12 @@ $buildFeedUrl = static function (array $params = []) use ($is_admin, $selectedBa
                         <span>Category</span>
                         <strong><?= e($selectedTypeLabel) ?></strong>
                     </li>
+                    <?php if ($selectedSearchQuery !== ''): ?>
+                        <li>
+                            <span>Search</span>
+                            <strong><?= e($selectedSearchQuery) ?></strong>
+                        </li>
+                    <?php endif; ?>
                 </ul>
             </article>
 
@@ -336,13 +391,37 @@ $buildFeedUrl = static function (array $params = []) use ($is_admin, $selectedBa
 
             <article class="community-rail-card">
                 <header class="community-rail-header">
-                    <h3>Post Better</h3>
+                    <h3>Quick Access</h3>
                 </header>
-                <ul class="community-tip-list">
-                    <li>Use clear subject tags so teammates can discover your post faster.</li>
-                    <li>Short direct titles and a useful image usually get more replies.</li>
-                    <li>Follow up in comments to keep your thread active.</li>
-                </ul>
+                <div class="community-popular-list">
+                    <?php if (!empty($can_save_posts)): ?>
+                        <a href="/saved-posts" class="community-popular-item">
+                            <span class="community-popular-rank">SV</span>
+                            <div class="community-popular-copy">
+                                <strong>Saved Posts</strong>
+                                <p>Your private bookmarked posts.</p>
+                            </div>
+                        </a>
+                    <?php endif; ?>
+                    <?php if (in_array((string) user_role(), ['admin', 'moderator'], true)): ?>
+                        <a href="<?= e(!empty($is_admin) && $selectedBatchId > 0 ? '/dashboard/community/reports?batch_id=' . $selectedBatchId : '/dashboard/community/reports') ?>" class="community-popular-item">
+                            <span class="community-popular-rank">RQ</span>
+                            <div class="community-popular-copy">
+                                <strong>Reports Queue</strong>
+                                <p>Review flagged posts and comments.</p>
+                            </div>
+                        </a>
+                    <?php endif; ?>
+                    <?php if (!empty($can_post)): ?>
+                        <a href="/my-posts" class="community-popular-item">
+                            <span class="community-popular-rank">MP</span>
+                            <div class="community-popular-copy">
+                                <strong>My Posts</strong>
+                                <p>Manage your published conversations.</p>
+                            </div>
+                        </a>
+                    <?php endif; ?>
+                </div>
             </article>
         </aside>
     </section>
