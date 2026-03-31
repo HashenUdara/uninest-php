@@ -34,6 +34,7 @@ Treat this as the project contract.
   - `topics_*` in `modules/topics/*`
   - `resources_*` in `modules/resources/*`
   - `comments_*` in `modules/comments/*`
+  - `community_*` in `modules/community/*`
 - Legacy onboarding exceptions currently allowed:
   - `onboarding_*`, `admin_*`, `moderator_*`, `university_*`, `universities_*`
 - New code should prefer strict module prefixing, even inside onboarding.
@@ -99,6 +100,10 @@ Primary tables:
 - `resources` (topic-scoped, approval-based)
 - `resource_update_requests` (staged edits)
 - `resource_ratings`
+- `feed_posts` (batch-scoped community posts)
+- `feed_post_likes`
+- `feed_post_saves`
+- `feed_reports`
 - `comments` (polymorphic target)
 - `password_reset_tokens`
 
@@ -112,6 +117,9 @@ Non-negotiable integrity rules:
 - Multiple moderators may be assigned to the same batch via `users.batch_id`.
 - One join-request row per student (`student_user_id` unique in `student_batch_requests`).
 - `users.first_approved_batch_id` becomes immutable once first approved assignment is recorded.
+- One save row per `(post_id, user_id)` in `feed_post_saves`.
+- `feed_reports.target_type` is restricted to `post | comment`.
+- `feed_reports.status` is restricted to `open | dismissed | resolved`.
 
 When changing DB schema:
 
@@ -154,6 +162,28 @@ Use `middleware_exact_role('admin')` for admin provisioning routes.
   - delete allowed for author, moderator/admin, and coordinator only within assigned subjects.
 - Keep comment target access centralized in helpers/controllers; do not hardcode target-specific access rules in generic comment model functions.
 
+## 7.3) Community Interaction Rules (Do Not Break)
+
+- Community feed posts are batch-scoped for non-admin users.
+- Feed search scope is posts only (post body + author + subject fields), not comments.
+- Pinned behavior:
+  - only `announcement` posts may be pinned,
+  - only moderator for own batch (or admin override) can pin/unpin,
+  - max pinned announcements per batch: `3`.
+- Question workflow:
+  - only `question` posts can be marked solved/reopened,
+  - only the post author can resolve/reopen.
+- Save/report actions:
+  - any authenticated onboarded user with read access can save/report,
+  - self-reporting (own post/comment) is blocked,
+  - saved posts are private to the saving user.
+- Moderation queue:
+  - moderator sees/actions reports only for own batch,
+  - admin sees/actions reports across all batches.
+- Report actions:
+  - dismiss closes report with no content deletion,
+  - remove deletes reported target (post/comment) and resolves related open reports.
+
 ## 7.1) Admin Provisioning Route Groups
 
 - Student management:
@@ -187,6 +217,33 @@ Use `middleware_exact_role('admin')` for admin provisioning routes.
   - `GET /subjects/{id}/topics/{topicId}/edit`
   - `POST /subjects/{id}/topics/{topicId}`
   - `POST /subjects/{id}/topics/{topicId}/delete`
+- Community:
+  - `GET /dashboard/community`
+  - `GET /dashboard/community/create`
+  - `POST /dashboard/community`
+  - `GET /dashboard/community/{id}`
+  - `POST /dashboard/community/{id}`
+  - `POST /dashboard/community/{id}/delete`
+  - `POST /dashboard/community/{id}/like`
+  - `POST /dashboard/community/{id}/save`
+  - `POST /dashboard/community/{id}/report`
+  - `POST /dashboard/community/{id}/question/resolve`
+  - `POST /dashboard/community/{id}/question/reopen`
+  - `POST /dashboard/community/{id}/pin`
+  - `POST /dashboard/community/{id}/unpin`
+  - `POST /dashboard/community/{id}/comments`
+  - `POST /dashboard/community/{id}/comments/{commentId}`
+  - `POST /dashboard/community/{id}/comments/{commentId}/delete`
+  - `POST /dashboard/community/{id}/comments/{commentId}/report`
+  - `GET /community/{id}/image`
+  - `GET /my-posts`
+  - `GET /my-posts/{id}/edit`
+  - `POST /my-posts/{id}`
+  - `POST /my-posts/{id}/delete`
+  - `GET /saved-posts`
+  - `GET /dashboard/community/reports`
+  - `POST /dashboard/community/reports/{id}/dismiss`
+  - `POST /dashboard/community/reports/{id}/remove`
 
 ## 8) Auth and Password Reset Rules
 
@@ -199,7 +256,7 @@ Use `middleware_exact_role('admin')` for admin provisioning routes.
 
 ## 9) UI/UX Rules for This Repo
 
-- Use existing style system in `public/assets/css/style.css`.
+- Use existing style system in `public/assets/css/style.css` and `public/assets/css/dashboard-modern.css`.
 - Keep auth/dashboard views server-rendered, consistent with current aesthetic.
 - Avoid introducing a new design system per page.
 - Keep forms and spacing clean, readable, and consistent with existing components.
