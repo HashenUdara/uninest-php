@@ -8,6 +8,7 @@ $isBatches = str_starts_with($currentPath, '/admin/batches');
 $isModerators = str_starts_with($currentPath, '/admin/moderators');
 $isCommunityReports = str_starts_with($currentPath, '/dashboard/community/reports');
 $isCommunityFeed = str_starts_with($currentPath, '/dashboard/community') && !$isCommunityReports;
+$isKuppi = str_starts_with($currentPath, '/dashboard/kuppi') || str_starts_with($currentPath, '/my-kuppi-requests');
 ?>
 <nav class="sidebar-nav">
     <div class="sidebar-section-label">Overview</div>
@@ -24,6 +25,7 @@ $isCommunityFeed = str_starts_with($currentPath, '/dashboard/community') && !$is
     <div class="sidebar-section-label">Content</div>
     <ul>
         <li><a href="/dashboard/community" data-icon="CF" class="<?= $isCommunityFeed ? 'active' : '' ?>"><span>Community Feed</span></a></li>
+        <li><a href="/dashboard/kuppi" data-icon="KP" class="<?= $isKuppi ? 'active' : '' ?>"><span>Requested Kuppi</span></a></li>
         <li><a href="/saved-posts" data-icon="SV" class="<?= str_starts_with($currentPath, '/saved-posts') ? 'active' : '' ?>"><span>Saved Posts</span></a></li>
         <li><a href="/dashboard/community/reports" data-icon="RQ" class="<?= $isCommunityReports ? 'active' : '' ?>"><span>Reports Queue</span></a></li>
         <li><a href="/subjects" data-icon="SB" class="<?= $isSubjects ? 'active' : '' ?>"><span>Subjects</span></a></li>

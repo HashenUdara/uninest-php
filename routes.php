@@ -58,6 +58,14 @@ route('POST', '/dashboard/community/{id}/comments/{commentId}/report', 'communit
 route('POST', '/dashboard/community/{id}/comments/{commentId}', 'community_comment_update', ['middleware_auth', 'middleware_onboarding_complete']);
 route('POST', '/dashboard/community/{id}/comments/{commentId}/delete', 'community_comment_delete', ['middleware_auth', 'middleware_onboarding_complete']);
 route('GET', '/community/{id}/image', 'community_image', ['middleware_auth', 'middleware_onboarding_complete']);
+route('GET', '/dashboard/kuppi', 'kuppi_index', ['middleware_auth', 'middleware_onboarding_complete']);
+route('GET', '/dashboard/kuppi/create', 'kuppi_create_form', ['middleware_auth', 'middleware_onboarding_complete']);
+route('POST', '/dashboard/kuppi', 'kuppi_store', ['middleware_auth', 'middleware_onboarding_complete']);
+route('GET', '/dashboard/kuppi/{id}/edit', 'kuppi_edit_form', ['middleware_auth', 'middleware_onboarding_complete']);
+route('GET', '/dashboard/kuppi/{id}', 'kuppi_show', ['middleware_auth', 'middleware_onboarding_complete']);
+route('POST', '/dashboard/kuppi/{id}', 'kuppi_update_action', ['middleware_auth', 'middleware_onboarding_complete']);
+route('POST', '/dashboard/kuppi/{id}/delete', 'kuppi_delete_action', ['middleware_auth', 'middleware_onboarding_complete']);
+route('POST', '/dashboard/kuppi/{id}/vote', 'kuppi_vote_action', ['middleware_auth', 'middleware_onboarding_complete']);
 
 // ──────────────────────────────────────
 // Subjects — Student view (authenticated)
@@ -112,6 +120,7 @@ route('GET', '/my-posts', 'community_my_index', ['middleware_auth', 'middleware_
 route('GET', '/my-posts/{id}/edit', 'community_my_edit_form', ['middleware_auth', 'middleware_onboarding_complete']);
 route('POST', '/my-posts/{id}', 'community_my_update_action', ['middleware_auth', 'middleware_onboarding_complete']);
 route('POST', '/my-posts/{id}/delete', 'community_my_delete_action', ['middleware_auth', 'middleware_onboarding_complete']);
+route('GET', '/my-kuppi-requests', 'kuppi_my_index', ['middleware_auth', 'middleware_onboarding_complete']);
 route('POST', '/resources/{id}/rating', 'resources_rating_upsert', ['middleware_auth', 'middleware_onboarding_complete']);
 route('POST', '/resources/{id}/comments', 'resources_comment_store', ['middleware_auth', 'middleware_onboarding_complete']);
 route('POST', '/resources/{id}/comments/{commentId}', 'resources_comment_update', ['middleware_auth', 'middleware_onboarding_complete']);

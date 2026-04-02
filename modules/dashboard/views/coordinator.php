@@ -4,6 +4,7 @@
     <p class="dash-copy">Welcome back, <?= e($user['name']) ?>. You can coordinate your assigned subjects while keeping normal student access.</p>
     <div class="dash-action-row">
         <a href="/coordinator/subjects" class="btn btn-primary">Manage Assigned Subjects</a>
+        <a href="/dashboard/kuppi" class="btn btn-outline">Requested Kuppi</a>
         <a href="/dashboard/community" class="btn btn-outline">Community Feed</a>
         <a href="/my-posts" class="btn btn-outline">My Posts</a>
         <a href="/coordinator/resource-requests" class="btn btn-outline">Review Resource Requests</a>

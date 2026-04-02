@@ -425,6 +425,41 @@ CREATE TABLE IF NOT EXISTS feed_reports (
     CONSTRAINT fk_feed_reports_reviewed_by FOREIGN KEY (reviewed_by_user_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS kuppi_requests (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    batch_id INT NOT NULL,
+    subject_id INT NOT NULL,
+    requested_by_user_id INT NULL,
+    title VARCHAR(200) NOT NULL,
+    description TEXT NOT NULL,
+    tags_csv VARCHAR(500) NULL,
+    status ENUM('open', 'scheduled', 'completed', 'cancelled') NOT NULL DEFAULT 'open',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_kuppi_requests_batch_status_created (batch_id, status, created_at, id),
+    INDEX idx_kuppi_requests_batch_subject (batch_id, subject_id),
+    INDEX idx_kuppi_requests_subject (subject_id),
+    INDEX idx_kuppi_requests_requested_by (requested_by_user_id),
+    CONSTRAINT fk_kuppi_requests_batch FOREIGN KEY (batch_id) REFERENCES batches(id) ON DELETE CASCADE,
+    CONSTRAINT fk_kuppi_requests_subject FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
+    CONSTRAINT fk_kuppi_requests_requested_by FOREIGN KEY (requested_by_user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS kuppi_request_votes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    request_id INT NOT NULL,
+    user_id INT NOT NULL,
+    vote_type ENUM('up', 'down') NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_kuppi_request_vote (request_id, user_id),
+    INDEX idx_kuppi_request_votes_request (request_id),
+    INDEX idx_kuppi_request_votes_user (user_id),
+    INDEX idx_kuppi_request_votes_request_vote (request_id, vote_type),
+    CONSTRAINT fk_kuppi_request_votes_request FOREIGN KEY (request_id) REFERENCES kuppi_requests(id) ON DELETE CASCADE,
+    CONSTRAINT fk_kuppi_request_votes_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS comments (
     id INT AUTO_INCREMENT PRIMARY KEY,
     target_type VARCHAR(50) NOT NULL,
