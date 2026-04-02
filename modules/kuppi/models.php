@@ -119,6 +119,7 @@ function kuppi_requests_for_batch(
                 COALESCE(vv.downvotes, 0) AS downvote_count,
                 COALESCE(vv.score, 0) AS vote_score,
                 COALESCE(ca.conductor_count, 0) AS conductor_count,
+                COALESCE(cc.comment_count, 0) AS comment_count,
                 uv.vote_type AS viewer_vote
          FROM kuppi_requests kr
          INNER JOIN batches b ON b.id = kr.batch_id
@@ -137,6 +138,12 @@ function kuppi_requests_for_batch(
             FROM kuppi_conductor_applications
             GROUP BY request_id
          ) ca ON ca.request_id = kr.id
+         LEFT JOIN (
+            SELECT target_id AS request_id, COUNT(*) AS comment_count
+            FROM comments
+            WHERE target_type = 'kuppi_request'
+            GROUP BY target_id
+         ) cc ON cc.request_id = kr.id
          LEFT JOIN kuppi_request_votes uv
                 ON uv.request_id = kr.id
                AND uv.user_id = ?
@@ -334,7 +341,8 @@ function kuppi_my_requests(int $ownerUserId): array
                 COALESCE(vv.upvotes, 0) AS upvote_count,
                 COALESCE(vv.downvotes, 0) AS downvote_count,
                 COALESCE(vv.score, 0) AS vote_score,
-                COALESCE(ca.conductor_count, 0) AS conductor_count
+                COALESCE(ca.conductor_count, 0) AS conductor_count,
+                COALESCE(cc.comment_count, 0) AS comment_count
          FROM kuppi_requests kr
          INNER JOIN batches b ON b.id = kr.batch_id
          INNER JOIN subjects s ON s.id = kr.subject_id
@@ -351,6 +359,12 @@ function kuppi_my_requests(int $ownerUserId): array
             FROM kuppi_conductor_applications
             GROUP BY request_id
          ) ca ON ca.request_id = kr.id
+         LEFT JOIN (
+            SELECT target_id AS request_id, COUNT(*) AS comment_count
+            FROM comments
+            WHERE target_type = 'kuppi_request'
+            GROUP BY target_id
+         ) cc ON cc.request_id = kr.id
          WHERE kr.requested_by_user_id = ?
          ORDER BY kr.updated_at DESC, kr.id DESC",
         [$ownerUserId]

@@ -146,17 +146,19 @@ $buildListUrl = static function (array $params = []) use ($is_admin, $selectedBa
                 $viewerVote = (string) ($request['viewer_vote'] ?? '');
                 $voteScore = (int) ($request['vote_score'] ?? 0);
                 $upvotes = (int) ($request['upvote_count'] ?? 0);
-                $downvotes = (int) ($request['downvote_count'] ?? 0);
+                $commentCount = (int) ($request['comment_count'] ?? 0);
+                $interestedCount = max(0, $upvotes);
                 $canEdit = kuppi_can_edit_request($request);
                 $canDelete = kuppi_can_delete_request($request);
                 $canVote = kuppi_user_can_vote_request($request) && !$isOwn;
+                $canApplyAsConductor = kuppi_user_can_apply_as_conductor($request);
                 $tags = kuppi_tags_to_array((string) ($request['tags_csv'] ?? ''));
                 $showUrl = '/dashboard/kuppi/' . $requestId;
                 if (!empty($is_admin) && $selectedBatchId > 0) {
                     $showUrl .= '?batch_id=' . $selectedBatchId;
                 }
                 ?>
-                <article class="kuppi-request-card">
+                <article class="kuppi-request-card kuppi-request-card--list">
                     <aside class="kuppi-vote-rail">
                         <form method="POST" action="/dashboard/kuppi/<?= $requestId ?>/vote">
                             <?= csrf_field() ?>
@@ -181,22 +183,25 @@ $buildListUrl = static function (array $params = []) use ($is_admin, $selectedBa
                         </form>
                     </aside>
 
-                    <div class="kuppi-request-main">
+                    <div class="kuppi-request-main kuppi-request-main--list">
                         <header class="kuppi-request-header">
                             <div class="kuppi-request-badges">
                                 <?php if (!empty($request['subject_code'])): ?>
                                     <span class="badge"><?= e((string) $request['subject_code']) ?></span>
                                 <?php endif; ?>
-                                <span class="badge badge-info">Open</span>
                             </div>
-                            <a href="<?= e($showUrl) ?>" class="kuppi-request-title"><?= e((string) ($request['title'] ?? 'Untitled')) ?></a>
-                            <p class="kuppi-request-meta">
-                                Requested by <strong><?= e($requesterName) ?></strong>
-                                • <?= e(date('Y-m-d H:i', strtotime((string) ($request['created_at'] ?? 'now')))) ?>
-                            </p>
+                            <a href="<?= e($showUrl) ?>" class="kuppi-request-title kuppi-request-title--list"><?= e((string) ($request['title'] ?? 'Untitled')) ?></a>
+                            <div class="kuppi-request-author-row">
+                                <span class="kuppi-request-avatar"><?= e(ui_initials($requesterName)) ?></span>
+                                <p class="kuppi-request-meta kuppi-request-meta--list">
+                                    <span>Requested by <strong><?= e($requesterName) ?></strong></span>
+                                    <span class="kuppi-meta-dot">•</span>
+                                    <span><?= e(kuppi_relative_time_label((string) ($request['created_at'] ?? 'now'))) ?></span>
+                                </p>
+                            </div>
                         </header>
 
-                        <p class="kuppi-request-description"><?= nl2br(e((string) ($request['description'] ?? ''))) ?></p>
+                        <p class="kuppi-request-description kuppi-request-description--list"><?= nl2br(e((string) ($request['description'] ?? ''))) ?></p>
 
                         <?php if (!empty($tags)): ?>
                             <div class="kuppi-tags">
@@ -206,26 +211,65 @@ $buildListUrl = static function (array $params = []) use ($is_admin, $selectedBa
                             </div>
                         <?php endif; ?>
 
-                        <footer class="kuppi-request-footer">
-                            <div class="kuppi-vote-stats">
-                                <span><strong><?= $upvotes ?></strong> upvotes</span>
-                                <span><strong><?= $downvotes ?></strong> downvotes</span>
-                                <span><strong><?= (int) ($request['conductor_count'] ?? 0) ?></strong> conductors</span>
+                        <footer class="kuppi-request-footer kuppi-request-footer--list">
+                            <div class="kuppi-request-metrics">
+                                <span class="kuppi-request-metric">
+                                    <svg class="kuppi-request-metric-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                        <path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H7l-4 4v-5.5A8.5 8.5 0 1 1 21 11.5Z" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    </svg>
+                                    <?= $commentCount ?> comments
+                                </span>
+                                <span class="kuppi-request-metric">
+                                    <svg class="kuppi-request-metric-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                        <path d="M16 11a4 4 0 1 0-8 0" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"></path>
+                                        <path d="M5.5 19a6.5 6.5 0 0 1 13 0" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"></path>
+                                        <path d="M17.5 4.5a3 3 0 0 1 0 6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"></path>
+                                    </svg>
+                                    <?= $interestedCount ?> interested
+                                </span>
+                                <span class="kuppi-request-metric">
+                                    <svg class="kuppi-request-metric-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                        <path d="M15 10a3 3 0 1 0-6 0" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"></path>
+                                        <path d="M3 20a6 6 0 0 1 12 0" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"></path>
+                                        <path d="m17 19 2 2 4-4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    </svg>
+                                    <?= (int) ($request['conductor_count'] ?? 0) ?> conductors
+                                </span>
                             </div>
-                            <div class="kuppi-request-actions">
-                                <a href="<?= e($showUrl) ?>" class="btn btn-sm btn-outline">Open</a>
+                            <div class="kuppi-request-actions kuppi-request-actions--list">
+                                <a href="<?= e($showUrl) ?>#kuppi-comments" class="btn btn-outline kuppi-request-action-btn">
+                                    <svg class="kuppi-btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                        <path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H7l-4 4v-5.5A8.5 8.5 0 1 1 21 11.5Z" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    </svg>
+                                    Comment
+                                </a>
+                                <?php if ($canApplyAsConductor): ?>
+                                    <a href="/dashboard/kuppi/<?= $requestId ?>/conductors/apply" class="btn btn-primary kuppi-request-action-btn">
+                                        <svg class="kuppi-btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                            <path d="M12 2v20M7 7h10v5a5 5 0 0 1-10 0V7Z" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path>
+                                        </svg>
+                                        Be a Conductor
+                                    </a>
+                                <?php else: ?>
+                                    <a href="<?= e($showUrl) ?>" class="btn btn-outline kuppi-request-action-btn">Open Session</a>
+                                <?php endif; ?>
+                            </div>
+                        </footer>
+
+                        <?php if ($canEdit || $canDelete): ?>
+                            <div class="kuppi-request-manage-links">
                                 <?php if ($canEdit): ?>
-                                    <a href="/dashboard/kuppi/<?= $requestId ?>/edit" class="btn btn-sm btn-outline">Edit</a>
+                                    <a href="/dashboard/kuppi/<?= $requestId ?>/edit">Edit</a>
                                 <?php endif; ?>
                                 <?php if ($canDelete): ?>
                                     <form method="POST" action="/dashboard/kuppi/<?= $requestId ?>/delete" onsubmit="return confirm('Delete this request?');">
                                         <?= csrf_field() ?>
                                         <input type="hidden" name="return_to" value="<?= e($currentUri) ?>">
-                                        <button type="submit" class="btn btn-sm btn-outline">Delete</button>
+                                        <button type="submit">Delete</button>
                                     </form>
                                 <?php endif; ?>
                             </div>
-                        </footer>
+                        <?php endif; ?>
                     </div>
                 </article>
             <?php endforeach; ?>

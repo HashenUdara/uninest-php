@@ -9,6 +9,43 @@ function kuppi_feed_per_page(): int
     return 10;
 }
 
+function kuppi_relative_time_label(string $timestamp): string
+{
+    $ts = strtotime($timestamp);
+    if ($ts === false) {
+        return 'just now';
+    }
+
+    $delta = time() - $ts;
+    if ($delta <= 0) {
+        return 'just now';
+    }
+
+    if ($delta < 60) {
+        return 'just now';
+    }
+
+    $units = [
+        ['seconds' => 604800, 'label' => 'week'],
+        ['seconds' => 86400, 'label' => 'day'],
+        ['seconds' => 3600, 'label' => 'hour'],
+        ['seconds' => 60, 'label' => 'minute'],
+    ];
+
+    foreach ($units as $unit) {
+        $seconds = (int) ($unit['seconds'] ?? 0);
+        if ($seconds <= 0 || $delta < $seconds) {
+            continue;
+        }
+
+        $value = (int) floor($delta / $seconds);
+        $label = (string) ($unit['label'] ?? 'minute');
+        return $value . ' ' . $label . ($value === 1 ? '' : 's') . ' ago';
+    }
+
+    return 'just now';
+}
+
 function kuppi_user_can_create(): bool
 {
     $role = (string) user_role();

@@ -49,7 +49,7 @@
 
 .dashboard-body .kuppi-request-list {
   display: grid;
-  gap: 14px;
+  gap: 18px;
 }
 
 .dashboard-body .kuppi-request-card {
@@ -62,11 +62,49 @@
   overflow: hidden;
 }
 
+.dashboard-body .kuppi-request-card--list {
+  grid-template-columns: 112px 1fr;
+  border-radius: 22px;
+  position: relative;
+  border: 1px solid #c8d3e2;
+  box-shadow: none;
+  background: #fff;
+}
+
+.dashboard-body .kuppi-request-card--list::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid #eef3fa;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.dashboard-body .kuppi-request-card--list:hover {
+  border-color: #b9c6d9;
+  box-shadow: none;
+}
+
 .dashboard-body .kuppi-request-card--single {
   margin-top: 10px;
   grid-template-columns: minmax(0, 1fr);
-  border-color: rgba(var(--dash-brand-rgb), 0.5);
-  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+  position: relative;
+  border: 1px solid #c8d3e2;
+  box-shadow: none;
+}
+
+.dashboard-body .kuppi-request-card--single::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid #eef3fa;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.dashboard-body .kuppi-request-card--single:hover {
+  border-color: #b9c6d9;
+  box-shadow: none;
 }
 
 .dashboard-body .kuppi-request-card--single .kuppi-request-main {
@@ -86,6 +124,14 @@
   text-align: center;
 }
 
+.dashboard-body .kuppi-request-card--list .kuppi-vote-rail {
+  border-right: 1px solid #d4ddec;
+  background: #f9fbff;
+  padding: 18px 8px;
+  gap: 16px;
+  box-shadow: none;
+}
+
 .dashboard-body .kuppi-vote-btn {
   width: 40px;
   height: 40px;
@@ -97,6 +143,14 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.18s ease;
+}
+
+.dashboard-body .kuppi-request-card--list .kuppi-vote-btn {
+  width: 46px;
+  height: 46px;
+  font-size: 1.12rem;
+  border-color: #cfd7e5;
+  color: #586780;
 }
 
 .dashboard-body .kuppi-vote-btn:hover:not(:disabled),
@@ -123,10 +177,21 @@
   line-height: 1;
 }
 
+.dashboard-body .kuppi-request-card--list .kuppi-vote-score {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #111b2f;
+}
+
 .dashboard-body .kuppi-request-main {
   padding: 16px 18px;
   display: grid;
   gap: 10px;
+}
+
+.dashboard-body .kuppi-request-main--list {
+  padding: 20px 24px;
+  gap: 12px;
 }
 
 .dashboard-body .kuppi-request-header {
@@ -147,6 +212,12 @@
   color: #1a2540;
 }
 
+.dashboard-body .kuppi-request-title--list {
+  font-size: clamp(1.55rem, 0.92vw + 1rem, 2rem);
+  line-height: 1.22;
+  letter-spacing: -0.01em;
+}
+
 .dashboard-body .kuppi-request-title:hover {
   color: var(--primary);
 }
@@ -155,6 +226,34 @@
   margin: 0;
   color: var(--muted);
   font-size: 0.93rem;
+}
+
+.dashboard-body .kuppi-request-author-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dashboard-body .kuppi-request-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #2e476f;
+  border: 1px solid #c6d0e3;
+  background: linear-gradient(145deg, #edf3ff 0%, #dde8fa 100%);
+}
+
+.dashboard-body .kuppi-request-meta--list {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  color: #6a7a95;
+  font-size: 0.98rem;
 }
 
 .dashboard-body .kuppi-meta-row {
@@ -178,10 +277,33 @@
   line-height: 1.65;
 }
 
+.dashboard-body .kuppi-request-description--list {
+  color: #4f607c;
+  font-size: 1.04rem;
+  line-height: 1.66;
+}
+
 .dashboard-body .kuppi-tags {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.dashboard-body .kuppi-request-main--list .kuppi-request-badges .badge {
+  border-radius: 999px;
+  font-size: 0.88rem;
+  letter-spacing: 0.02em;
+  padding: 7px 12px;
+}
+
+.dashboard-body .kuppi-request-main--list .kuppi-tags .badge {
+  border-radius: 999px;
+  font-size: 0.86rem;
+  font-weight: 500;
+  padding: 6px 12px;
+  color: #607089;
+  border-color: #cbd4e3;
+  background: #f8faff;
 }
 
 .dashboard-body .kuppi-request-footer {
@@ -192,6 +314,12 @@
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+.dashboard-body .kuppi-request-footer--list {
+  border-top: 1px solid #d4ddec;
+  padding-top: 14px;
+  margin-top: 4px;
 }
 
 .dashboard-body .kuppi-vote-stats {
@@ -205,6 +333,95 @@
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.dashboard-body .kuppi-request-actions--list {
+  gap: 10px;
+}
+
+.dashboard-body .kuppi-request-action-btn {
+  min-height: 50px;
+  border-radius: 999px;
+  padding: 10px 22px;
+  min-width: 170px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 600;
+  border-width: 1px;
+  box-shadow: none;
+}
+
+.dashboard-body .kuppi-request-actions--list .btn.btn-primary {
+  border-color: rgba(58, 28, 187, 0.15);
+  background: linear-gradient(140deg, #4a25e2 0%, #612fff 100%);
+  box-shadow: none;
+}
+
+.dashboard-body .kuppi-request-actions--list .btn.btn-primary:hover {
+  background: linear-gradient(140deg, #3d1fc3 0%, #5228df 100%);
+}
+
+.dashboard-body .kuppi-request-actions--list .btn.btn-outline {
+  border-color: #c4cfdf;
+  background: #fff;
+}
+
+.dashboard-body .kuppi-btn-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.dashboard-body .kuppi-request-metrics {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.dashboard-body .kuppi-request-metric {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #5f6f88;
+  font-size: 1.01rem;
+}
+
+.dashboard-body .kuppi-request-metric-icon {
+  width: 22px;
+  height: 22px;
+  color: #5d6d87;
+  flex-shrink: 0;
+}
+
+.dashboard-body .kuppi-request-manage-links {
+  margin-top: -2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dashboard-body .kuppi-request-manage-links a,
+.dashboard-body .kuppi-request-manage-links button {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  color: #7988a2;
+  font-size: 0.88rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.dashboard-body .kuppi-request-manage-links form {
+  margin: 0;
+}
+
+.dashboard-body .kuppi-request-manage-links a:hover,
+.dashboard-body .kuppi-request-manage-links button:hover {
+  color: #54637e;
 }
 
 .dashboard-body .kuppi-request-actions form {
@@ -254,10 +471,10 @@
 
 .dashboard-body .kuppi-side-card {
   background: #fff;
-  border: 1px solid var(--line);
+  border: 1px solid #ced8e7;
   border-radius: 16px;
   padding: 14px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: none;
   display: grid;
   gap: 12px;
 }
@@ -273,7 +490,7 @@
   justify-items: center;
   gap: 8px;
   background: #f6f7fb;
-  border: 1px solid var(--line);
+  border: 1px solid #d7dfec;
   border-radius: 14px;
   padding: 10px;
 }
@@ -311,7 +528,7 @@
   gap: 10px;
   padding: 10px;
   border-radius: 12px;
-  border: 1px solid var(--line);
+  border: 1px solid #d7dfec;
   background: #f8f9fd;
 }
 
@@ -346,19 +563,19 @@
 .dashboard-body .kuppi-conductor-card {
   display: grid;
   grid-template-columns: 84px 1fr;
-  border: 1px solid var(--line);
+  border: 1px solid #ced8e7;
   border-radius: 14px;
   background: #fff;
-  box-shadow: var(--shadow-sm);
+  box-shadow: none;
   overflow: hidden;
 }
 
 .dashboard-body .kuppi-conductor-card.is-top {
-  border-color: var(--primary);
+  border-color: #b8c6db;
 }
 
 .dashboard-body .kuppi-conductor-vote {
-  border-right: 1px solid var(--line);
+  border-right: 1px solid #d7dfec;
   background: #f6f7fb;
   display: flex;
   flex-direction: column;
@@ -389,10 +606,10 @@
 
 .dashboard-body .kuppi-apply-request-card {
   background: #fff;
-  border: 1px solid var(--line);
+  border: 1px solid #ced8e7;
   border-radius: 16px;
   padding: 16px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: none;
   display: grid;
   gap: 8px;
 }
@@ -427,7 +644,7 @@
 }
 
 .dashboard-body .kuppi-availability-item {
-  border: 1px solid var(--line);
+  border: 1px solid #d7dfec;
   border-radius: 12px;
   background: #f8f9fd;
   min-height: 56px;
@@ -464,8 +681,55 @@
     padding: 10px 12px;
   }
 
+  .dashboard-body .kuppi-request-card--list .kuppi-vote-rail {
+    justify-content: flex-start;
+    gap: 12px;
+  }
+
   .dashboard-body .kuppi-vote-score {
     min-width: 46px;
+  }
+
+  .dashboard-body .kuppi-request-main--list {
+    padding: 16px;
+    gap: 10px;
+  }
+
+  .dashboard-body .kuppi-request-title--list {
+    font-size: clamp(1.28rem, 5.2vw, 1.65rem);
+  }
+
+  .dashboard-body .kuppi-request-meta--list {
+    font-size: 0.9rem;
+    gap: 6px;
+  }
+
+  .dashboard-body .kuppi-request-description--list {
+    font-size: 0.98rem;
+  }
+
+  .dashboard-body .kuppi-request-footer--list {
+    gap: 14px;
+  }
+
+  .dashboard-body .kuppi-request-metrics {
+    width: 100%;
+    gap: 12px;
+  }
+
+  .dashboard-body .kuppi-request-metric {
+    font-size: 0.93rem;
+  }
+
+  .dashboard-body .kuppi-request-actions--list {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-body .kuppi-request-action-btn {
+    width: 100%;
+    min-width: 0;
   }
 
   .dashboard-body .kuppi-request-card--single .kuppi-request-main {
@@ -496,7 +760,7 @@
 
   .dashboard-body .kuppi-conductor-vote {
     border-right: none;
-    border-bottom: 1px solid var(--line);
+    border-bottom: 1px solid #d7dfec;
     flex-direction: row;
     justify-content: flex-start;
     padding: 8px 10px;
