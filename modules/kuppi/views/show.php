@@ -7,6 +7,10 @@ $isOwnRequest = (int) ($request['requested_by_user_id'] ?? 0) === (int) auth_id(
 $requestVoteScore = (int) ($request['vote_score'] ?? 0);
 $requestUpvotes = (int) ($request['upvote_count'] ?? 0);
 $requestDownvotes = (int) ($request['downvote_count'] ?? 0);
+$createdAtRaw = (string) ($request['created_at'] ?? '');
+$createdAtLabel = $createdAtRaw !== ''
+    ? (function_exists('kuppi_relative_time_label') ? kuppi_relative_time_label($createdAtRaw) : date('Y-m-d H:i', strtotime($createdAtRaw)))
+    : 'recently';
 $conductors = (array) ($conductor_applications ?? []);
 $viewerApplication = $viewer_conductor_application ?? null;
 $topVoteApplicationId = (int) ($top_vote_application_id ?? 0);
@@ -42,7 +46,7 @@ $commentMaxLevel = (int) ($comment_max_level ?? (comments_max_depth() + 1));
                     <div class="kuppi-meta-row">
                         <span>Requested by <strong><?= e($requesterName) ?></strong></span>
                         <span class="kuppi-meta-dot">•</span>
-                        <span><?= e(date('Y-m-d H:i', strtotime((string) ($request['created_at'] ?? 'now')))) ?></span>
+                        <span><?= e($createdAtLabel) ?></span>
                         <span class="kuppi-meta-dot">•</span>
                         <span><?= $requestUpvotes ?> up / <?= $requestDownvotes ?> down</span>
                     </div>
@@ -83,7 +87,7 @@ $commentMaxLevel = (int) ($comment_max_level ?? (comments_max_depth() + 1));
             </div>
         </article>
 
-        <section class="kuppi-conductor-section">
+        <section class="kuppi-conductor-section kuppi-section-card">
             <header class="kuppi-conductor-header">
                 <h2>Applied Conductors <span class="badge badge-info"><?= (int) ($conductor_count ?? count($conductors)) ?></span></h2>
                 <?php if (!empty($can_apply_as_conductor) && !$viewerApplication): ?>
@@ -153,7 +157,7 @@ $commentMaxLevel = (int) ($comment_max_level ?? (comments_max_depth() + 1));
             <?php endif; ?>
         </section>
 
-        <section class="resource-comments-section" id="kuppi-comments">
+        <section class="resource-comments-section kuppi-comments-card" id="kuppi-comments">
             <div class="resource-comments-shell">
                 <form method="POST" action="/dashboard/kuppi/<?= $requestId ?>/comments" class="resource-comments-composer">
                     <?= csrf_field() ?>
