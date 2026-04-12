@@ -110,6 +110,8 @@ Primary tables:
 - `kuppi_request_votes`
 - `kuppi_conductor_applications`
 - `kuppi_conductor_votes`
+- `kuppi_scheduled_sessions`
+- `kuppi_scheduled_session_hosts`
 - `password_reset_tokens`
 
 Non-negotiable integrity rules:
@@ -214,6 +216,20 @@ Use `middleware_exact_role('admin')` for admin provisioning routes.
 - Kuppi comments:
   - use `comments.target_type = 'kuppi_request'`,
   - keep comment depth/permissions centralized in comments helpers/controllers (no ad-hoc target checks inside generic model functions).
+- Kuppi scheduling:
+  - scheduler roles are `coordinator | moderator | admin` (students are read-only for scheduled pages),
+  - wizard flow order is `Select Request -> Assign Hosts -> Set Schedule -> Review & Confirm`,
+  - request-linked scheduling enforces one active linked session per request (`status = 'scheduled'`),
+  - if no conductor applications exist for a request, schedulers may assign any batch `student|coordinator` as hosts,
+  - conductor availability is a recommendation signal in scheduling UI (not a hard blocker),
+  - linked request status transitions:
+    - on schedule create: request `open -> scheduled`,
+    - on linked session cancel/delete: request reopens to `open`,
+    - on linked session complete: request moves to `completed`.
+- Kuppi scheduling notifications:
+  - notifications are best-effort and must not rollback successful schedule persistence,
+  - failures should be logged via `error_log`,
+  - recipient deduplication is required before send.
 
 ## 7.1) Admin Provisioning Route Groups
 
@@ -291,6 +307,22 @@ Use `middleware_exact_role('admin')` for admin provisioning routes.
   - `POST /dashboard/kuppi/{id}/comments/{commentId}`
   - `POST /dashboard/kuppi/{id}/comments/{commentId}/delete`
   - `GET /my-kuppi-requests`
+  - `GET /dashboard/kuppi/schedule`
+  - `GET /dashboard/kuppi/schedule/manual`
+  - `POST /dashboard/kuppi/schedule/select-request`
+  - `GET /dashboard/kuppi/schedule/assign`
+  - `POST /dashboard/kuppi/schedule/assign`
+  - `GET /dashboard/kuppi/schedule/set`
+  - `POST /dashboard/kuppi/schedule/set`
+  - `GET /dashboard/kuppi/schedule/review`
+  - `POST /dashboard/kuppi/schedule/confirm`
+  - `GET /dashboard/kuppi/schedule/success`
+  - `GET /dashboard/kuppi/scheduled`
+  - `GET /dashboard/kuppi/scheduled/{id}`
+  - `GET /dashboard/kuppi/scheduled/{id}/edit`
+  - `POST /dashboard/kuppi/scheduled/{id}`
+  - `POST /dashboard/kuppi/scheduled/{id}/cancel`
+  - `POST /dashboard/kuppi/scheduled/{id}/delete`
 
 ## 8) Auth and Password Reset Rules
 
@@ -298,8 +330,11 @@ Use `middleware_exact_role('admin')` for admin provisioning routes.
 - SMTP config uses:
   - `GMAIL_USERNAME`
   - `GMAIL_APP_PASSWORD`
+  - `EMAIL_NOTIFICATIONS_ENABLED` (`true|false`, global email on/off switch)
+  - `SMTP_TIMEOUT_SECONDS` (optional; socket timeout override)
 - `GMAIL_APP_PASSWORD` must not contain unquoted spaces in `.env`.
   - Prefer: no spaces (recommended) or wrap value in quotes.
+- If `EMAIL_NOTIFICATIONS_ENABLED=false`, app behavior must continue without failing user flows.
 
 ## 9) UI/UX Rules for This Repo
 

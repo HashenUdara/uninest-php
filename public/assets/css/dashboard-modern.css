@@ -1736,27 +1736,28 @@
 
 .dashboard-body .kuppi-scheduled-list {
   display: grid;
-  gap: 14px;
+  gap: 16px;
 }
 
 .dashboard-body .kuppi-scheduled-card {
-  border: 1px solid #cfdaea;
-  border-radius: 16px;
+  border: 1px solid #d3ddec;
+  border-radius: 18px;
   background: #fff;
-  padding: 16px 18px;
-  display: grid;
-  gap: 10px;
+  padding: 0;
+  display: block;
+  overflow: hidden;
 }
 
 .dashboard-body .kuppi-scheduled-head {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-  align-items: start;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .dashboard-body .kuppi-scheduled-head h3 {
-  margin: 2px 0 0;
+  margin: 0;
   font-size: 1.2rem;
 }
 
@@ -1772,6 +1773,138 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+}
+
+.dashboard-body .kuppi-scheduled-toolbar {
+  border: 1px solid #d9e1ee;
+  box-shadow: none;
+}
+
+.dashboard-body .kuppi-scheduled-summary {
+  margin: 14px 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.dashboard-body .kuppi-scheduled-summary .kuppi-result-count {
+  margin: 0;
+}
+
+.dashboard-body .kuppi-scheduled-summary-chips {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.dashboard-body .kuppi-scheduled-summary-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #d6deeb;
+  border-radius: 999px;
+  background: #f8fafe;
+  color: #5c6c85;
+  font-size: 0.86rem;
+  font-weight: 600;
+  padding: 6px 10px;
+}
+
+.dashboard-body .kuppi-scheduled-summary-chip .ui-lucide-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.dashboard-body .kuppi-scheduled-card--pro {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+}
+
+.dashboard-body .kuppi-scheduled-date-rail {
+  border-right: 1px solid #dce5f2;
+  background: #f7f9fe;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 4px;
+  padding: 16px 12px;
+}
+
+.dashboard-body .kuppi-scheduled-date-weekday {
+  color: #7485a0;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.dashboard-body .kuppi-scheduled-date-day {
+  color: #14213a;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.dashboard-body .kuppi-scheduled-date-month {
+  color: #667790;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.dashboard-body .kuppi-scheduled-date-time {
+  margin-top: 6px;
+  border: 1px solid #d6deec;
+  border-radius: 999px;
+  background: #fff;
+  color: #3a4b64;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 5px 9px;
+}
+
+.dashboard-body .kuppi-scheduled-main {
+  display: grid;
+  gap: 12px;
+  padding: 16px 20px;
+}
+
+.dashboard-body .kuppi-scheduled-main h3 {
+  margin: 0;
+  font-size: 1.24rem;
+  line-height: 1.3;
+}
+
+.dashboard-body .kuppi-scheduled-desc {
+  margin: 0;
+  color: #5d6f8a;
+  line-height: 1.55;
+}
+
+.dashboard-body .kuppi-scheduled-meta-grid {
+  border-top: 1px solid #e3ebf6;
+  padding-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 14px;
+}
+
+.dashboard-body .kuppi-scheduled-meta-grid .kuppi-request-metric {
+  margin: 0;
+  min-width: 0;
+}
+
+.dashboard-body .kuppi-scheduled-card--scheduled .kuppi-scheduled-date-rail {
+  background: #f4f8ff;
+}
+
+.dashboard-body .kuppi-scheduled-card--completed .kuppi-scheduled-date-rail {
+  background: #f2fbf6;
+}
+
+.dashboard-body .kuppi-scheduled-card--cancelled .kuppi-scheduled-date-rail {
+  background: #fff6f6;
 }
 
 @media (max-width: 980px) {
@@ -1809,6 +1942,37 @@
   .dashboard-body .kuppi-scheduled-head {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .dashboard-body .kuppi-scheduled-summary {
+    align-items: flex-start;
+  }
+
+  .dashboard-body .kuppi-scheduled-card--pro {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-body .kuppi-scheduled-date-rail {
+    border-right: 0;
+    border-bottom: 1px solid #dce5f2;
+    grid-template-columns: repeat(4, auto);
+    justify-content: start;
+    justify-items: start;
+    align-items: center;
+    gap: 8px 12px;
+    padding: 12px 14px;
+  }
+
+  .dashboard-body .kuppi-scheduled-date-day {
+    font-size: 1.5rem;
+  }
+
+  .dashboard-body .kuppi-scheduled-main {
+    padding: 14px;
+  }
+
+  .dashboard-body .kuppi-scheduled-meta-grid {
+    grid-template-columns: 1fr;
   }
 
   .dashboard-body .kuppi-filter-grid {

@@ -339,13 +339,41 @@ function is_current_url(string $path): bool
 
 function smtp_is_configured(): bool
 {
+    if (!smtp_notifications_enabled()) {
+        return false;
+    }
+
     $username = trim((string) env('GMAIL_USERNAME', ''));
     $password = trim((string) env('GMAIL_APP_PASSWORD', ''));
     return $username !== '' && $password !== '';
 }
 
+function smtp_notifications_enabled(): bool
+{
+    $value = env('EMAIL_NOTIFICATIONS_ENABLED', true);
+
+    if (is_bool($value)) {
+        return $value;
+    }
+
+    $normalized = strtolower(trim((string) $value));
+    if (in_array($normalized, ['1', 'true', 'yes', 'on'], true)) {
+        return true;
+    }
+
+    if (in_array($normalized, ['0', 'false', 'no', 'off', ''], true)) {
+        return false;
+    }
+
+    return true;
+}
+
 function smtp_send_email(string $toEmail, string $subject, string $textBody): bool
 {
+    if (!smtp_notifications_enabled()) {
+        return true;
+    }
+
     $username = trim((string) env('GMAIL_USERNAME', ''));
     $password = trim((string) env('GMAIL_APP_PASSWORD', ''));
 
