@@ -15,6 +15,9 @@ $isKuppiRequested = (
     && !$isKuppiScheduleFlow
     && !$isKuppiScheduled
 ) || str_starts_with($currentPath, '/my-kuppi-requests');
+$isQuizHub = $currentPath === '/dashboard/quizzes'
+    || (str_starts_with($currentPath, '/dashboard/subjects/') && str_contains($currentPath, '/quizzes'));
+$isQuizRequests = str_starts_with($currentPath, '/dashboard/quiz-requests');
 ?>
 <nav class="sidebar-nav">
     <div class="sidebar-section-label">Overview</div>
@@ -26,11 +29,13 @@ $isKuppiRequested = (
     <ul>
         <li><a href="/admin/batch-requests" class="<?= is_current_url('/admin/batch-requests') ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('inbox') ?></span><span>Batch Requests</span></a></li>
         <li><a href="/admin/student-requests" class="<?= is_current_url('/admin/student-requests') ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('users') ?></span><span>Student Requests</span></a></li>
+        <li><a href="/dashboard/quiz-requests" class="<?= $isQuizRequests ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('check-check') ?></span><span>Quiz Requests</span></a></li>
     </ul>
 
     <div class="sidebar-section-label">Content</div>
     <ul>
         <li><a href="/dashboard/community" class="<?= $isCommunityFeed ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('message-square') ?></span><span>Community Feed</span></a></li>
+        <li><a href="/dashboard/quizzes" class="<?= $isQuizHub ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('clipboard-check') ?></span><span>Quiz Hub</span></a></li>
         <li><a href="/dashboard/kuppi" class="<?= $isKuppiRequested ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('book-open') ?></span><span>Requested Kuppi</span></a></li>
         <li><a href="/dashboard/kuppi/scheduled" class="<?= $isKuppiScheduled ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('calendar') ?></span><span>Scheduled Kuppi</span></a></li>
         <li><a href="/dashboard/kuppi/schedule" class="<?= $isKuppiScheduleFlow ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('calendar-plus') ?></span><span>Schedule Session</span></a></li>

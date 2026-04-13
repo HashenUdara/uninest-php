@@ -17,9 +17,11 @@ $statusLabel = ucfirst($batchStatus ?: 'pending');
     </p>
     <div class="dash-action-row">
         <a href="/moderator/join-requests" class="btn btn-primary">Review Join Requests</a>
+        <a href="/dashboard/quizzes" class="btn btn-outline">Quiz Hub</a>
         <a href="/dashboard/community" class="btn btn-outline">Community Feed</a>
         <a href="/my-posts" class="btn btn-outline">My Posts</a>
         <a href="/students" class="btn btn-outline">Manage Students</a>
+        <a href="/dashboard/quiz-requests" class="btn btn-outline">Review Quiz Requests</a>
         <a href="/my-resources" class="btn btn-outline">My Resources</a>
         <a href="/subjects/create" class="btn btn-outline">Create Subject</a>
         <a href="/subjects" class="btn btn-outline">Manage Subjects</a>
@@ -36,6 +38,11 @@ $statusLabel = ucfirst($batchStatus ?: 'pending');
         <span class="kpi-label">Pending Join Requests</span>
         <strong><?= (int) $pending_student_requests ?></strong>
         <p>Students waiting for approval.</p>
+    </article>
+    <article class="kpi-card">
+        <span class="kpi-label">Pending Quiz Requests</span>
+        <strong><?= (int) ($pending_quiz_requests ?? 0) ?></strong>
+        <p>Quiz approvals waiting for moderation.</p>
     </article>
     <article class="kpi-card">
         <span class="kpi-label">Batch Status</span>

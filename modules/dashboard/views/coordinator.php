@@ -4,10 +4,13 @@
     <p class="dash-copy">Welcome back, <?= e($user['name']) ?>. You can coordinate your assigned subjects while keeping normal student access.</p>
     <div class="dash-action-row">
         <a href="/coordinator/subjects" class="btn btn-primary">Manage Assigned Subjects</a>
+        <a href="/dashboard/quizzes" class="btn btn-outline">Quiz Hub</a>
         <a href="/dashboard/kuppi" class="btn btn-outline">Requested Kuppi</a>
         <a href="/dashboard/community" class="btn btn-outline">Community Feed</a>
         <a href="/my-posts" class="btn btn-outline">My Posts</a>
+        <a href="/my-quizzes" class="btn btn-outline">My Quizzes</a>
         <a href="/coordinator/resource-requests" class="btn btn-outline">Review Resource Requests</a>
+        <a href="/dashboard/quiz-requests" class="btn btn-outline">Review Quiz Requests</a>
         <a href="/my-resources" class="btn btn-outline">My Resources</a>
         <a href="/dashboard/subjects" class="btn btn-outline">Browse Batch Subjects</a>
     </div>
@@ -24,6 +27,11 @@
         <strong><?= (int) $pending_resource_requests ?></strong>
         <p>Student submissions waiting for your approval.</p>
     </article>
+    <article class="kpi-card">
+        <span class="kpi-label">Pending Quiz Requests</span>
+        <strong><?= (int) ($pending_quiz_requests ?? 0) ?></strong>
+        <p>Quizzes in your assigned subjects awaiting review.</p>
+    </article>
 </section>
 
 <section class="dash-panel">
@@ -39,6 +47,14 @@
         <a href="/coordinator/resource-requests" class="btn btn-sm btn-outline">Open Queue</a>
     </header>
     <p class="text-muted">Review pending student resource uploads and update requests for subjects assigned to you.</p>
+</section>
+
+<section class="dash-panel">
+    <header class="dash-panel-header">
+        <h2>Quiz Approvals</h2>
+        <a href="/dashboard/quiz-requests" class="btn btn-sm btn-outline">Open Queue</a>
+    </header>
+    <p class="text-muted">Review pending student-created quizzes for your assigned subjects and publish approved ones.</p>
 </section>
 
 <section class="dash-panel">

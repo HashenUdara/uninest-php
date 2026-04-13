@@ -5,6 +5,7 @@
         <p class="page-subtitle">Explore the subjects available in your approved batch.</p>
     </div>
     <div class="page-header-actions">
+        <a href="/dashboard/quizzes" class="btn btn-primary"><?= ui_lucide_icon('clipboard-check') ?> Quiz Hub</a>
         <a href="/dashboard" class="btn btn-outline"><?= ui_lucide_icon('arrow-left') ?> Back to Dashboard</a>
     </div>
 </div>

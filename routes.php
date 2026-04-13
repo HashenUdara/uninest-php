@@ -37,6 +37,7 @@ route('POST', '/onboarding/student/resubmit',    'onboarding_student_resubmit', 
 // ──────────────────────────────────────
 
 route('GET', '/dashboard', 'dashboard_index', ['middleware_auth', 'middleware_onboarding_complete']);
+route('GET', '/dashboard/quizzes', 'quizzes_hub_index', ['middleware_auth', 'middleware_onboarding_complete']);
 route('GET', '/dashboard/community', 'community_index', ['middleware_auth', 'middleware_onboarding_complete']);
 route('POST', '/dashboard/community', 'community_store', ['middleware_auth', 'middleware_onboarding_complete']);
 route('GET', '/dashboard/community/create', 'community_create_form', ['middleware_auth', 'middleware_onboarding_complete']);
@@ -99,6 +100,14 @@ route('GET', '/dashboard/subjects/{id}/topics/{topicId}/resources', 'resources_t
 route('GET', '/dashboard/subjects/{id}/topics/{topicId}/resources/create', 'resources_topic_create_form', ['middleware_auth', 'middleware_onboarding_complete']);
 route('GET', '/dashboard/subjects/{id}/topics/{topicId}/resources/{resourceId}', 'resources_topic_show', ['middleware_auth', 'middleware_onboarding_complete']);
 route('POST', '/dashboard/subjects/{id}/topics/{topicId}/resources', 'resources_topic_store', ['middleware_auth', 'middleware_onboarding_complete']);
+route('GET', '/dashboard/subjects/{id}/quizzes', 'quizzes_subject_index', ['middleware_auth', 'middleware_onboarding_complete']);
+route('GET', '/dashboard/subjects/{id}/quizzes/create', 'quizzes_subject_create_form', ['middleware_auth', 'middleware_onboarding_complete']);
+route('POST', '/dashboard/subjects/{id}/quizzes', 'quizzes_subject_store', ['middleware_auth', 'middleware_onboarding_complete']);
+route('GET', '/dashboard/subjects/{id}/quizzes/{quizId}', 'quizzes_subject_show', ['middleware_auth', 'middleware_onboarding_complete']);
+route('POST', '/dashboard/subjects/{id}/quizzes/{quizId}/attempts/start', 'quizzes_attempt_start', ['middleware_auth', 'middleware_onboarding_complete']);
+route('GET', '/dashboard/subjects/{id}/quizzes/{quizId}/attempts/{attemptId}', 'quizzes_attempt_take', ['middleware_auth', 'middleware_onboarding_complete']);
+route('POST', '/dashboard/subjects/{id}/quizzes/{quizId}/attempts/{attemptId}/submit', 'quizzes_attempt_submit', ['middleware_auth', 'middleware_onboarding_complete']);
+route('GET', '/dashboard/subjects/{id}/quizzes/{quizId}/attempts/{attemptId}/result', 'quizzes_attempt_result', ['middleware_auth', 'middleware_onboarding_complete']);
 
 // ──────────────────────────────────────
 // Subjects — Moderator CRUD
@@ -137,6 +146,14 @@ route('GET', '/my-resources', 'resources_my_index', ['middleware_auth', 'middlew
 route('GET', '/my-resources/{id}/edit', 'resources_my_edit_form', ['middleware_auth', 'middleware_onboarding_complete']);
 route('POST', '/my-resources/{id}', 'resources_my_update_action', ['middleware_auth', 'middleware_onboarding_complete']);
 route('POST', '/my-resources/{id}/delete', 'resources_my_delete_action', ['middleware_auth', 'middleware_onboarding_complete']);
+route('GET', '/my-quizzes', 'quizzes_my_index', ['middleware_auth', 'middleware_onboarding_complete']);
+route('GET', '/my-quizzes/{id}/edit', 'quizzes_my_edit_form', ['middleware_auth', 'middleware_onboarding_complete']);
+route('POST', '/my-quizzes/{id}', 'quizzes_my_update_action', ['middleware_auth', 'middleware_onboarding_complete']);
+route('POST', '/my-quizzes/{id}/submit', 'quizzes_my_submit_action', ['middleware_auth', 'middleware_onboarding_complete']);
+route('POST', '/my-quizzes/{id}/delete', 'quizzes_my_delete_action', ['middleware_auth', 'middleware_onboarding_complete']);
+route('GET', '/dashboard/quiz-requests', 'quizzes_review_queue_index', ['middleware_auth', 'middleware_onboarding_complete']);
+route('POST', '/dashboard/quiz-requests/{id}/approve', 'quizzes_review_approve', ['middleware_auth', 'middleware_onboarding_complete']);
+route('POST', '/dashboard/quiz-requests/{id}/reject', 'quizzes_review_reject', ['middleware_auth', 'middleware_onboarding_complete']);
 route('GET', '/saved-posts', 'community_saved_posts_index', ['middleware_auth', 'middleware_onboarding_complete']);
 route('GET', '/my-posts', 'community_my_index', ['middleware_auth', 'middleware_onboarding_complete']);
 route('GET', '/my-posts/{id}/edit', 'community_my_edit_form', ['middleware_auth', 'middleware_onboarding_complete']);

@@ -271,6 +271,94 @@ CREATE TABLE IF NOT EXISTS topics (
 ) ENGINE=InnoDB;
 
 -- ──────────────────────────────────────
+-- Subject Quizzes (subject-scoped, approval-gated)
+-- ──────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS quizzes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    subject_id INT NOT NULL,
+    created_by_user_id INT NULL,
+    title VARCHAR(200) NOT NULL,
+    description TEXT NULL,
+    duration_minutes SMALLINT UNSIGNED NOT NULL,
+    status ENUM('draft', 'pending', 'approved', 'rejected') NOT NULL DEFAULT 'draft',
+    rejection_reason TEXT NULL,
+    reviewed_by_user_id INT NULL,
+    reviewed_at TIMESTAMP NULL DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_quizzes_review_queue (status, subject_id, created_at, id),
+    INDEX idx_quizzes_published_browse (subject_id, status, updated_at, id),
+    INDEX idx_quizzes_creator (created_by_user_id),
+    INDEX idx_quizzes_reviewer (reviewed_by_user_id),
+    CONSTRAINT chk_quizzes_duration CHECK (duration_minutes BETWEEN 5 AND 180),
+    CONSTRAINT fk_quizzes_subject FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
+    CONSTRAINT fk_quizzes_creator FOREIGN KEY (created_by_user_id) REFERENCES users(id) ON DELETE SET NULL,
+    CONSTRAINT fk_quizzes_reviewer FOREIGN KEY (reviewed_by_user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS quiz_questions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    quiz_id INT NOT NULL,
+    question_text TEXT NOT NULL,
+    sort_order INT UNSIGNED NOT NULL DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_quiz_questions_quiz_sort (quiz_id, sort_order, id),
+    CONSTRAINT fk_quiz_questions_quiz FOREIGN KEY (quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS quiz_options (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    question_id INT NOT NULL,
+    option_text TEXT NOT NULL,
+    is_correct TINYINT(1) NOT NULL DEFAULT 0,
+    sort_order INT UNSIGNED NOT NULL DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_quiz_options_question_sort (question_id, sort_order, id),
+    INDEX idx_quiz_options_question_correct (question_id, is_correct),
+    CONSTRAINT fk_quiz_options_question FOREIGN KEY (question_id) REFERENCES quiz_questions(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS quiz_attempts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    quiz_id INT NOT NULL,
+    user_id INT NOT NULL,
+    status ENUM('in_progress', 'submitted', 'auto_submitted') NOT NULL DEFAULT 'in_progress',
+    started_at DATETIME NOT NULL,
+    expires_at DATETIME NOT NULL,
+    submitted_at DATETIME NULL,
+    correct_count INT UNSIGNED NOT NULL DEFAULT 0,
+    total_questions INT UNSIGNED NOT NULL DEFAULT 0,
+    score_percent DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_quiz_attempts_quiz_user_submitted (quiz_id, user_id, submitted_at, id),
+    INDEX idx_quiz_attempts_quiz_user_status (quiz_id, user_id, status, id),
+    INDEX idx_quiz_attempts_user_status (user_id, status, id),
+    CONSTRAINT chk_quiz_attempts_score CHECK (score_percent >= 0 AND score_percent <= 100),
+    CONSTRAINT fk_quiz_attempts_quiz FOREIGN KEY (quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE,
+    CONSTRAINT fk_quiz_attempts_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS quiz_attempt_answers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    attempt_id INT NOT NULL,
+    question_id INT NOT NULL,
+    selected_option_id INT NULL,
+    is_correct TINYINT(1) NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_quiz_attempt_question (attempt_id, question_id),
+    INDEX idx_quiz_attempt_answers_attempt (attempt_id),
+    INDEX idx_quiz_attempt_answers_question (question_id),
+    CONSTRAINT fk_quiz_attempt_answers_attempt FOREIGN KEY (attempt_id) REFERENCES quiz_attempts(id) ON DELETE CASCADE,
+    CONSTRAINT fk_quiz_attempt_answers_question FOREIGN KEY (question_id) REFERENCES quiz_questions(id) ON DELETE CASCADE,
+    CONSTRAINT fk_quiz_attempt_answers_selected_option FOREIGN KEY (selected_option_id) REFERENCES quiz_options(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- ──────────────────────────────────────
 -- Topic Resources (topic-scoped, approval-based publishing)
 -- ──────────────────────────────────────
 

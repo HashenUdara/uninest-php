@@ -5,6 +5,7 @@
         <p class="page-subtitle">Explore topic cards for <strong><?= e($subject['name']) ?></strong>.</p>
     </div>
     <div class="page-header-actions">
+        <a href="/dashboard/subjects/<?= (int) $subject['id'] ?>/quizzes" class="btn btn-outline"><?= ui_lucide_icon('clipboard-list') ?> View Quizzes</a>
         <?php if ($can_manage): ?>
             <a href="/subjects/<?= (int) $subject['id'] ?>/topics" class="btn btn-primary">Manage Topics</a>
             <a href="/subjects/<?= (int) $subject['id'] ?>/topics/create" class="btn btn-outline">+ New Topic</a>
