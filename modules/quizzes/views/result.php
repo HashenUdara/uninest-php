@@ -9,6 +9,7 @@ $resultRows = (array) ($result_rows ?? []);
 $bestAttempt = is_array($best_attempt ?? null) ? $best_attempt : null;
 $attemptCount = (int) ($attempt_count ?? 0);
 $isBest = $bestAttempt && (int) ($bestAttempt['id'] ?? 0) === $attemptId;
+$wrongCount = max(0, $totalQuestions - $correctCount);
 ?>
 
 <div class="page-header">
@@ -31,9 +32,10 @@ $isBest = $bestAttempt && (int) ($bestAttempt['id'] ?? 0) === $attemptId;
         </div>
 
         <div class="quiz-result-meta">
-            <span class="badge">Attempts: <?= $attemptCount ?></span>
+            <span class="badge">Attempts <?= $attemptCount ?></span>
+            <span class="badge">Wrong <?= $wrongCount ?></span>
             <?php if ($bestAttempt): ?>
-                <span class="badge">Best: <?= e(number_format((float) ($bestAttempt['score_percent'] ?? 0), 2)) ?>%</span>
+                <span class="badge">Best <?= e(number_format((float) ($bestAttempt['score_percent'] ?? 0), 2)) ?>%</span>
             <?php endif; ?>
             <?php if ($isBest): ?>
                 <span class="badge badge-info">This is your best score</span>
@@ -52,14 +54,17 @@ $isBest = $bestAttempt && (int) ($bestAttempt['id'] ?? 0) === $attemptId;
                     <span class="badge <?= $isCorrect ? 'badge-info' : 'badge-danger' ?>"><?= $isCorrect ? 'Correct' : 'Incorrect' ?></span>
                 </div>
 
-                <p><strong>Your answer:</strong> <?= e((string) ($row['selected_option_text'] ?? 'No answer')) ?></p>
-                <p><strong>Correct answer:</strong> <?= e((string) ($row['correct_option_text'] ?? '-')) ?></p>
+                <div class="quiz-result-answer-rows">
+                    <p><strong>Your answer:</strong> <?= e((string) ($row['selected_option_text'] ?? 'No answer')) ?></p>
+                    <p><strong>Correct answer:</strong> <?= e((string) ($row['correct_option_text'] ?? '-')) ?></p>
+                </div>
             </div>
         </article>
     <?php endforeach; ?>
 </section>
 
 <div class="quiz-result-actions">
+    <a href="/dashboard/subjects/<?= $subjectId ?>/quizzes/<?= $quizId ?>" class="btn btn-outline">Back to Quiz</a>
     <form method="POST" action="/dashboard/subjects/<?= $subjectId ?>/quizzes/<?= $quizId ?>/attempts/start">
         <?= csrf_field() ?>
         <button type="submit" class="btn btn-primary">Retake Quiz</button>

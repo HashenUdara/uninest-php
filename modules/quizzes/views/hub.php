@@ -4,6 +4,15 @@ $canCreate = (bool) ($can_create ?? false);
 $canReview = (bool) ($can_review ?? false);
 $pendingReviewCount = (int) ($pending_review_count ?? 0);
 $myQuizCount = (int) ($my_quiz_count ?? 0);
+
+$subjectCount = count($subjects);
+$approvedTotal = 0;
+$pendingTotal = 0;
+
+foreach ($subjects as $subject) {
+    $approvedTotal += (int) ($subject['approved_quizzes'] ?? 0);
+    $pendingTotal += (int) ($subject['pending_quizzes'] ?? 0);
+}
 ?>
 
 <div class="page-header">
@@ -23,9 +32,43 @@ $myQuizCount = (int) ($my_quiz_count ?? 0);
     </div>
 </div>
 
-<?php if (empty($subjects)): ?>
-    <div class="card">
+<section class="quiz-hub-kpis">
+    <article class="card quiz-hub-kpi-card">
         <div class="card-body">
+            <span class="quiz-hub-kpi-label">Subjects</span>
+            <strong><?= $subjectCount ?></strong>
+            <p>Available in your scope</p>
+        </div>
+    </article>
+    <article class="card quiz-hub-kpi-card">
+        <div class="card-body">
+            <span class="quiz-hub-kpi-label">Published Quizzes</span>
+            <strong><?= $approvedTotal ?></strong>
+            <p>Ready for learners</p>
+        </div>
+    </article>
+    <article class="card quiz-hub-kpi-card">
+        <div class="card-body">
+            <span class="quiz-hub-kpi-label">Pending Reviews</span>
+            <strong><?= $pendingTotal ?></strong>
+            <p>Waiting for approvals</p>
+        </div>
+    </article>
+    <?php if ($canCreate): ?>
+        <article class="card quiz-hub-kpi-card">
+            <div class="card-body">
+                <span class="quiz-hub-kpi-label">My Quizzes</span>
+                <strong><?= $myQuizCount ?></strong>
+                <p>Your authored quizzes</p>
+            </div>
+        </article>
+    <?php endif; ?>
+</section>
+
+<?php if (empty($subjects)): ?>
+    <div class="card quiz-hub-empty-card">
+        <div class="card-body">
+            <h3><?= ui_lucide_icon('circle-help') ?> No subjects found</h3>
             <p class="text-muted">No subjects available in your scope yet.</p>
         </div>
     </div>
@@ -42,22 +85,23 @@ $myQuizCount = (int) ($my_quiz_count ?? 0);
             <article class="card quiz-hub-card">
                 <div class="card-body">
                     <div class="quiz-hub-head">
-                        <h3><?= e((string) ($subject['code'] ?? 'SUB')) ?> - <?= e((string) ($subject['name'] ?? 'Subject')) ?></h3>
-                        <span class="badge">Total: <?= $totalCount ?></span>
+                        <h3><?= e((string) ($subject['code'] ?? 'SUB')) ?></h3>
+                        <span class="badge">Total <?= $totalCount ?></span>
                     </div>
+                    <p class="quiz-hub-subject-name"><?= e((string) ($subject['name'] ?? 'Subject')) ?></p>
 
                     <div class="quiz-hub-stats">
-                        <span class="badge badge-info">Approved: <?= $approvedCount ?></span>
+                        <span class="badge badge-info">Approved <?= $approvedCount ?></span>
                         <?php if ($canReview): ?>
-                            <span class="badge badge-warning">Pending: <?= $pendingCount ?></span>
+                            <span class="badge badge-warning">Pending <?= $pendingCount ?></span>
                         <?php endif; ?>
                         <?php if ($canCreate): ?>
-                            <span class="badge">My Quizzes: <?= $myCount ?></span>
+                            <span class="badge">Mine <?= $myCount ?></span>
                         <?php endif; ?>
                     </div>
 
                     <div class="quiz-hub-actions">
-                        <a href="/dashboard/subjects/<?= $subjectId ?>/quizzes" class="btn btn-primary">View Quizzes</a>
+                        <a href="/dashboard/subjects/<?= $subjectId ?>/quizzes" class="btn btn-primary">Open Subject Quizzes</a>
                         <?php if ($canCreate): ?>
                             <a href="/dashboard/subjects/<?= $subjectId ?>/quizzes/create" class="btn btn-outline">Create Quiz</a>
                         <?php endif; ?>

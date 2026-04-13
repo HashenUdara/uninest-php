@@ -20,18 +20,21 @@ $buildTabUrl = static function (string $status): string {
 <div class="quiz-review-metrics">
     <article class="card quiz-review-metric-card">
         <div class="card-body">
+            <span class="quiz-review-metric-icon"><?= ui_lucide_icon('clock-3') ?></span>
             <h3><?= (int) ($metrics['pending_count'] ?? 0) ?></h3>
             <p>Pending Review</p>
         </div>
     </article>
     <article class="card quiz-review-metric-card">
         <div class="card-body">
+            <span class="quiz-review-metric-icon"><?= ui_lucide_icon('check-circle-2') ?></span>
             <h3><?= (int) ($metrics['approved_today_count'] ?? 0) ?></h3>
             <p>Approved Today</p>
         </div>
     </article>
     <article class="card quiz-review-metric-card">
         <div class="card-body">
+            <span class="quiz-review-metric-icon"><?= ui_lucide_icon('x-circle') ?></span>
             <h3><?= (int) ($metrics['rejected_today_count'] ?? 0) ?></h3>
             <p>Rejected Today</p>
         </div>
@@ -95,7 +98,7 @@ $buildTabUrl = static function (string $status): string {
 
                             <form method="POST" action="/dashboard/quiz-requests/<?= $quizId ?>/reject" class="quiz-review-reject-form">
                                 <?= csrf_field() ?>
-                                <input type="text" name="rejection_reason" required placeholder="Rejection reason">
+                                <textarea name="rejection_reason" required rows="2" placeholder="Rejection reason (required)"></textarea>
                                 <button type="submit" class="btn btn-outline"><?= ui_lucide_icon('x') ?> Reject</button>
                             </form>
                         </div>

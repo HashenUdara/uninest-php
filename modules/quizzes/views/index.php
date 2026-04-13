@@ -3,6 +3,20 @@ $subjectId = (int) ($subject['id'] ?? 0);
 $subjectCode = (string) ($subject['code'] ?? 'SUB');
 $subjectName = (string) ($subject['name'] ?? 'Subject');
 $quizzes = (array) ($quizzes ?? []);
+
+$totalQuizzes = count($quizzes);
+$totalAttempts = 0;
+$bestSeenScore = null;
+
+foreach ($quizzes as $quizRow) {
+    $totalAttempts += (int) ($quizRow['viewer_attempt_count'] ?? 0);
+    if ($quizRow['viewer_best_score'] !== null) {
+        $score = (float) $quizRow['viewer_best_score'];
+        if ($bestSeenScore === null || $score > $bestSeenScore) {
+            $bestSeenScore = $score;
+        }
+    }
+}
 ?>
 
 <div class="page-header">
@@ -19,10 +33,35 @@ $quizzes = (array) ($quizzes ?? []);
     </div>
 </div>
 
-<?php if (empty($quizzes)): ?>
-    <div class="card">
+<section class="quiz-catalog-kpis">
+    <article class="card quiz-catalog-kpi-card">
         <div class="card-body">
+            <span>Available Quizzes</span>
+            <strong><?= $totalQuizzes ?></strong>
+        </div>
+    </article>
+    <article class="card quiz-catalog-kpi-card">
+        <div class="card-body">
+            <span>Your Attempts</span>
+            <strong><?= $totalAttempts ?></strong>
+        </div>
+    </article>
+    <article class="card quiz-catalog-kpi-card">
+        <div class="card-body">
+            <span>Your Best</span>
+            <strong><?= $bestSeenScore !== null ? e(number_format($bestSeenScore, 2)) . '%' : '-' ?></strong>
+        </div>
+    </article>
+</section>
+
+<?php if (empty($quizzes)): ?>
+    <div class="card quiz-catalog-empty-card">
+        <div class="card-body">
+            <h3><?= ui_lucide_icon('circle-help') ?> No quizzes published yet</h3>
             <p class="text-muted">No approved quizzes yet for this subject.</p>
+            <?php if (!empty($can_create)): ?>
+                <a href="/dashboard/subjects/<?= $subjectId ?>/quizzes/create" class="btn btn-primary">Create the First Quiz</a>
+            <?php endif; ?>
         </div>
     </div>
 <?php else: ?>
@@ -51,9 +90,9 @@ $quizzes = (array) ($quizzes ?? []);
                     </div>
 
                     <div class="quiz-catalog-stats">
-                        <span class="badge">Attempts: <?= $attemptCount ?></span>
+                        <span class="badge">Attempts <?= $attemptCount ?></span>
                         <?php if ($bestScore !== null): ?>
-                            <span class="badge">Best: <?= e(number_format((float) $bestScore, 2)) ?>%</span>
+                            <span class="badge">Best <?= e(number_format((float) $bestScore, 2)) ?>%</span>
                         <?php endif; ?>
                     </div>
 
