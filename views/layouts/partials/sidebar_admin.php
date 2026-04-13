@@ -22,6 +22,7 @@ $isQuizHub = $currentPath === '/dashboard/quizzes'
 $isQuizRequests = str_starts_with($currentPath, '/dashboard/quiz-requests');
 $isQuizAnalytics = str_starts_with($currentPath, '/dashboard/quiz-analytics');
 $isGpaGradeScale = str_starts_with($currentPath, '/dashboard/gpa/grade-scale');
+$isProfileSettings = $currentPath === '/dashboard/profile';
 ?>
 <nav class="sidebar-nav">
     <div class="sidebar-section-label">Overview</div>
@@ -59,5 +60,10 @@ $isGpaGradeScale = str_starts_with($currentPath, '/dashboard/gpa/grade-scale');
     <ul>
         <li><a href="/admin/moderators" class="<?= $isModerators ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('shield') ?></span><span>Moderators</span></a></li>
         <li><a href="/admin/batches" class="<?= $isBatches ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('folder') ?></span><span>Batches</span></a></li>
+    </ul>
+
+    <div class="sidebar-section-label">Account</div>
+    <ul>
+        <li><a href="/dashboard/profile" class="<?= $isProfileSettings ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('user-cog') ?></span><span>Profile Settings</span></a></li>
     </ul>
 </nav>

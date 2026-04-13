@@ -15,6 +15,7 @@ $isMyQuizzes = str_starts_with($currentPath, '/my-quizzes');
 $isMyQuizAnalytics = $currentPath === '/my-quiz-analytics';
 $isGpaCalculator = $currentPath === '/dashboard/gpa';
 $isGpaAnalytics = $currentPath === '/dashboard/gpa/analytics';
+$isProfileSettings = $currentPath === '/dashboard/profile';
 ?>
 <nav class="sidebar-nav">
     <?php $isCoordinatorSubjects = str_starts_with($currentPath, '/coordinator/subjects'); ?>
@@ -46,5 +47,10 @@ $isGpaAnalytics = $currentPath === '/dashboard/gpa/analytics';
         <li><a href="/coordinator/resource-requests" class="<?= $isResourceRequests ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('inbox') ?></span><span>Resource Requests</span></a></li>
         <li><a href="/dashboard/quiz-requests" class="<?= $isQuizRequests ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('check-check') ?></span><span>Quiz Requests</span></a></li>
         <li><a href="/dashboard/quiz-analytics" class="<?= $isQuizAnalytics ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('chart-no-axes-column') ?></span><span>Review Analytics</span></a></li>
+    </ul>
+
+    <div class="sidebar-section-label">Account</div>
+    <ul>
+        <li><a href="/dashboard/profile" class="<?= $isProfileSettings ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('user-cog') ?></span><span>Profile Settings</span></a></li>
     </ul>
 </nav>

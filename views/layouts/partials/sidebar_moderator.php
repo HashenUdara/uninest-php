@@ -19,6 +19,7 @@ $isQuizHub = $currentPath === '/dashboard/quizzes'
 $isQuizRequests = str_starts_with($currentPath, '/dashboard/quiz-requests');
 $isQuizAnalytics = str_starts_with($currentPath, '/dashboard/quiz-analytics');
 $isGpaGradeScale = str_starts_with($currentPath, '/dashboard/gpa/grade-scale');
+$isProfileSettings = $currentPath === '/dashboard/profile';
 ?>
 <nav class="sidebar-nav">
     <div class="sidebar-section-label">Overview</div>
@@ -45,5 +46,10 @@ $isGpaGradeScale = str_starts_with($currentPath, '/dashboard/gpa/grade-scale');
         <li><a href="/subjects" class="<?= $isSubjects ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('layers') ?></span><span>Batch Subjects</span></a></li>
         <li><a href="/subjects/create" class="<?= $isSubjectCreate ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('plus') ?></span><span>New Subject</span></a></li>
         <li><a href="/students" class="<?= $isStudents ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('users') ?></span><span>Batch Students</span></a></li>
+    </ul>
+
+    <div class="sidebar-section-label">Account</div>
+    <ul>
+        <li><a href="/dashboard/profile" class="<?= $isProfileSettings ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('user-cog') ?></span><span>Profile Settings</span></a></li>
     </ul>
 </nav>

@@ -15,6 +15,7 @@ $isMyQuizzes = str_starts_with($currentPath, '/my-quizzes');
 $isMyQuizAnalytics = $currentPath === '/my-quiz-analytics';
 $isGpaCalculator = $currentPath === '/dashboard/gpa';
 $isGpaAnalytics = $currentPath === '/dashboard/gpa/analytics';
+$isProfileSettings = $currentPath === '/dashboard/profile';
 ?>
 <nav class="sidebar-nav">
     <div class="sidebar-section-label">Overview</div>
@@ -37,6 +38,7 @@ $isGpaAnalytics = $currentPath === '/dashboard/gpa/analytics';
 
     <div class="sidebar-section-label">Account</div>
     <ul>
+        <li><a href="/dashboard/profile" class="<?= $isProfileSettings ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('user-cog') ?></span><span>Profile Settings</span></a></li>
         <li><a href="/onboarding" class="<?= is_current_url('/onboarding') ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('clipboard') ?></span><span>Onboarding Status</span></a></li>
     </ul>
 </nav>

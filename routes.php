@@ -37,6 +37,9 @@ route('POST', '/onboarding/student/resubmit',    'onboarding_student_resubmit', 
 // ──────────────────────────────────────
 
 route('GET', '/dashboard', 'dashboard_index', ['middleware_auth', 'middleware_onboarding_complete']);
+route('GET', '/dashboard/profile', 'profile_index', ['middleware_auth', 'middleware_onboarding_complete']);
+route('POST', '/dashboard/profile', 'profile_update_action', ['middleware_auth', 'middleware_onboarding_complete']);
+route('POST', '/dashboard/profile/password', 'profile_password_update_action', ['middleware_auth', 'middleware_onboarding_complete']);
 route('GET', '/dashboard/quizzes', 'quizzes_hub_index', ['middleware_auth', 'middleware_onboarding_complete']);
 route('GET', '/dashboard/gpa', 'gpa_calculator_index', ['middleware_auth', 'middleware_onboarding_complete']);
 route('POST', '/dashboard/gpa', 'gpa_calculator_store', ['middleware_auth', 'middleware_onboarding_complete']);
