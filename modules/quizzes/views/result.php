@@ -10,13 +10,19 @@ $bestAttempt = is_array($best_attempt ?? null) ? $best_attempt : null;
 $attemptCount = (int) ($attempt_count ?? 0);
 $isBest = $bestAttempt && (int) ($bestAttempt['id'] ?? 0) === $attemptId;
 $wrongCount = max(0, $totalQuestions - $correctCount);
+$quizMode = (string) ($quiz['mode'] ?? 'exam');
+$isPracticeMode = $quizMode === 'practice';
 ?>
 
 <div class="page-header">
     <div class="page-header-content">
         <p class="page-breadcrumb"><?= e((string) ($role_label ?? 'Student')) ?> / Quiz Result</p>
         <h1><?= e((string) ($quiz['title'] ?? 'Quiz')) ?> Result</h1>
-        <p class="page-subtitle">Review your score and correct answers.</p>
+        <p class="page-subtitle">
+            <?= $isPracticeMode
+                ? 'Practice mode completed. Review your final score and answer breakdown.'
+                : 'Exam mode completed. Review your score and correct answers.' ?>
+        </p>
     </div>
     <div class="page-header-actions">
         <a href="/dashboard/subjects/<?= $subjectId ?>/quizzes/<?= $quizId ?>" class="btn btn-outline"><?= ui_lucide_icon('arrow-left') ?> Back to Quiz</a>
@@ -32,6 +38,7 @@ $wrongCount = max(0, $totalQuestions - $correctCount);
         </div>
 
         <div class="quiz-result-meta">
+            <span class="badge <?= e(quizzes_mode_badge_class($quizMode)) ?>"><?= e(quizzes_mode_label($quizMode)) ?> Mode</span>
             <span class="badge">Attempts <?= $attemptCount ?></span>
             <span class="badge">Wrong <?= $wrongCount ?></span>
             <?php if ($bestAttempt): ?>

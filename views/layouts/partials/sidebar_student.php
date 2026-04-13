@@ -10,6 +10,7 @@ $isKuppiRequested = (
 $isQuizHub = $currentPath === '/dashboard/quizzes'
     || (str_starts_with($currentPath, '/dashboard/subjects/') && str_contains($currentPath, '/quizzes'));
 $isMyQuizzes = str_starts_with($currentPath, '/my-quizzes');
+$isMyQuizAnalytics = $currentPath === '/my-quiz-analytics';
 ?>
 <nav class="sidebar-nav">
     <div class="sidebar-section-label">Overview</div>
@@ -24,6 +25,7 @@ $isMyQuizzes = str_starts_with($currentPath, '/my-quizzes');
         <li><a href="/my-posts" class="<?= str_starts_with($currentPath, '/my-posts') ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('file-text') ?></span><span>My Posts</span></a></li>
         <li><a href="/my-resources" class="<?= str_starts_with($currentPath, '/my-resources') ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('file-text') ?></span><span>My Resources</span></a></li>
         <li><a href="/my-quizzes" class="<?= $isMyQuizzes ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('clipboard-list') ?></span><span>My Quizzes</span></a></li>
+        <li><a href="/my-quiz-analytics" class="<?= $isMyQuizAnalytics ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('line-chart') ?></span><span>Quiz Analytics</span></a></li>
     </ul>
 
     <div class="sidebar-section-label">Account</div>

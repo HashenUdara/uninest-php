@@ -4,14 +4,20 @@ $canCreate = (bool) ($can_create ?? false);
 $canReview = (bool) ($can_review ?? false);
 $pendingReviewCount = (int) ($pending_review_count ?? 0);
 $myQuizCount = (int) ($my_quiz_count ?? 0);
+$canViewPersonalAnalytics = (bool) ($can_view_personal_analytics ?? true);
+$canViewReviewerAnalytics = (bool) ($can_view_reviewer_analytics ?? false);
 
 $subjectCount = count($subjects);
 $approvedTotal = 0;
 $pendingTotal = 0;
+$practiceTotal = 0;
+$examTotal = 0;
 
 foreach ($subjects as $subject) {
     $approvedTotal += (int) ($subject['approved_quizzes'] ?? 0);
     $pendingTotal += (int) ($subject['pending_quizzes'] ?? 0);
+    $practiceTotal += (int) ($subject['practice_quizzes'] ?? 0);
+    $examTotal += (int) ($subject['exam_quizzes'] ?? 0);
 }
 ?>
 
@@ -19,14 +25,20 @@ foreach ($subjects as $subject) {
     <div class="page-header-content">
         <p class="page-breadcrumb"><?= e((string) ($role_label ?? 'Student')) ?> / Quizzes</p>
         <h1>Quiz Hub</h1>
-        <p class="page-subtitle">Find quizzes fast by subject, create new ones, and jump into review queues.</p>
+        <p class="page-subtitle">Find quizzes by subject, publish new ones, and monitor performance in one place.</p>
     </div>
     <div class="page-header-actions">
+        <?php if ($canViewPersonalAnalytics): ?>
+            <a href="/my-quiz-analytics" class="btn btn-outline"><?= ui_lucide_icon('line-chart') ?> My Analytics</a>
+        <?php endif; ?>
         <?php if ($canCreate): ?>
             <a href="/my-quizzes" class="btn btn-outline"><?= ui_lucide_icon('clipboard-list') ?> My Quizzes (<?= $myQuizCount ?>)</a>
         <?php endif; ?>
         <?php if ($canReview): ?>
             <a href="/dashboard/quiz-requests" class="btn btn-primary"><?= ui_lucide_icon('check-check') ?> Quiz Requests (<?= $pendingReviewCount ?>)</a>
+        <?php endif; ?>
+        <?php if ($canViewReviewerAnalytics): ?>
+            <a href="/dashboard/quiz-analytics" class="btn btn-outline"><?= ui_lucide_icon('chart-no-axes-column') ?> Review Analytics</a>
         <?php endif; ?>
         <a href="/dashboard" class="btn btn-outline"><?= ui_lucide_icon('arrow-left') ?> Back to Dashboard</a>
     </div>
@@ -54,15 +66,13 @@ foreach ($subjects as $subject) {
             <p>Waiting for approvals</p>
         </div>
     </article>
-    <?php if ($canCreate): ?>
-        <article class="card quiz-hub-kpi-card">
-            <div class="card-body">
-                <span class="quiz-hub-kpi-label">My Quizzes</span>
-                <strong><?= $myQuizCount ?></strong>
-                <p>Your authored quizzes</p>
-            </div>
-        </article>
-    <?php endif; ?>
+    <article class="card quiz-hub-kpi-card">
+        <div class="card-body">
+            <span class="quiz-hub-kpi-label">Practice / Exam</span>
+            <strong><?= $practiceTotal ?> / <?= $examTotal ?></strong>
+            <p>Mode distribution</p>
+        </div>
+    </article>
 </section>
 
 <?php if (empty($subjects)): ?>
@@ -81,6 +91,8 @@ foreach ($subjects as $subject) {
             $pendingCount = (int) ($subject['pending_quizzes'] ?? 0);
             $totalCount = (int) ($subject['total_quizzes'] ?? 0);
             $myCount = (int) ($subject['my_quizzes'] ?? 0);
+            $practiceCount = (int) ($subject['practice_quizzes'] ?? 0);
+            $examCount = (int) ($subject['exam_quizzes'] ?? 0);
             ?>
             <article class="card quiz-hub-card">
                 <div class="card-body">
@@ -92,6 +104,8 @@ foreach ($subjects as $subject) {
 
                     <div class="quiz-hub-stats">
                         <span class="badge badge-info">Approved <?= $approvedCount ?></span>
+                        <span class="badge">Practice <?= $practiceCount ?></span>
+                        <span class="badge">Exam <?= $examCount ?></span>
                         <?php if ($canReview): ?>
                             <span class="badge badge-warning">Pending <?= $pendingCount ?></span>
                         <?php endif; ?>
@@ -102,6 +116,7 @@ foreach ($subjects as $subject) {
 
                     <div class="quiz-hub-actions">
                         <a href="/dashboard/subjects/<?= $subjectId ?>/quizzes" class="btn btn-primary">Open Subject Quizzes</a>
+                        <a href="/dashboard/subjects/<?= $subjectId ?>/quizzes/leaderboard" class="btn btn-outline">Leaderboard</a>
                         <?php if ($canCreate): ?>
                             <a href="/dashboard/subjects/<?= $subjectId ?>/quizzes/create" class="btn btn-outline">Create Quiz</a>
                         <?php endif; ?>

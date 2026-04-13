@@ -10,11 +10,13 @@ $isKuppiRequested = (
 $isQuizHub = $currentPath === '/dashboard/quizzes'
     || (str_starts_with($currentPath, '/dashboard/subjects/') && str_contains($currentPath, '/quizzes'));
 $isMyQuizzes = str_starts_with($currentPath, '/my-quizzes');
+$isMyQuizAnalytics = $currentPath === '/my-quiz-analytics';
 ?>
 <nav class="sidebar-nav">
     <?php $isCoordinatorSubjects = str_starts_with($currentPath, '/coordinator/subjects'); ?>
     <?php $isResourceRequests = str_starts_with($currentPath, '/coordinator/resource-requests'); ?>
     <?php $isQuizRequests = str_starts_with($currentPath, '/dashboard/quiz-requests'); ?>
+    <?php $isQuizAnalytics = str_starts_with($currentPath, '/dashboard/quiz-analytics'); ?>
     <div class="sidebar-section-label">Overview</div>
     <ul>
         <li><a href="/dashboard" class="<?= is_current_url('/dashboard') ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('home') ?></span><span>Dashboard</span></a></li>
@@ -28,6 +30,7 @@ $isMyQuizzes = str_starts_with($currentPath, '/my-quizzes');
         <li><a href="/my-posts" class="<?= str_starts_with($currentPath, '/my-posts') ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('file-text') ?></span><span>My Posts</span></a></li>
         <li><a href="/my-resources" class="<?= str_starts_with($currentPath, '/my-resources') ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('file-text') ?></span><span>My Resources</span></a></li>
         <li><a href="/my-quizzes" class="<?= $isMyQuizzes ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('clipboard-list') ?></span><span>My Quizzes</span></a></li>
+        <li><a href="/my-quiz-analytics" class="<?= $isMyQuizAnalytics ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('line-chart') ?></span><span>Quiz Analytics</span></a></li>
     </ul>
 
     <div class="sidebar-section-label">Coordinator</div>
@@ -35,5 +38,6 @@ $isMyQuizzes = str_starts_with($currentPath, '/my-quizzes');
         <li><a href="/coordinator/subjects" class="<?= $isCoordinatorSubjects ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('layers') ?></span><span>Manage Subjects</span></a></li>
         <li><a href="/coordinator/resource-requests" class="<?= $isResourceRequests ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('inbox') ?></span><span>Resource Requests</span></a></li>
         <li><a href="/dashboard/quiz-requests" class="<?= $isQuizRequests ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('check-check') ?></span><span>Quiz Requests</span></a></li>
+        <li><a href="/dashboard/quiz-analytics" class="<?= $isQuizAnalytics ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('chart-no-axes-column') ?></span><span>Review Analytics</span></a></li>
     </ul>
 </nav>

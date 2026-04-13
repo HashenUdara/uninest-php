@@ -27,6 +27,7 @@ foreach ($quizzes as $quizRow) {
         <p class="page-subtitle">Manage your drafts, submissions, and published quizzes.</p>
     </div>
     <div class="page-header-actions">
+        <a href="/my-quiz-analytics" class="btn btn-outline"><?= ui_lucide_icon('line-chart') ?> My Analytics</a>
         <a href="/dashboard" class="btn btn-outline"><?= ui_lucide_icon('arrow-left') ?> Back to Dashboard</a>
     </div>
 </div>
@@ -51,13 +52,17 @@ foreach ($quizzes as $quizRow) {
             $quizId = (int) ($quiz['id'] ?? 0);
             $subjectId = (int) ($quiz['subject_id'] ?? 0);
             $status = (string) ($quiz['status'] ?? 'draft');
+            $mode = (string) ($quiz['mode'] ?? 'practice');
             $isEditable = in_array($status, ['draft', 'rejected'], true);
             ?>
             <article class="card quiz-my-card">
                 <div class="card-body">
                     <div class="quiz-my-card-head">
                         <h3><?= e((string) ($quiz['title'] ?? 'Untitled Quiz')) ?></h3>
-                        <span class="badge <?= e(quizzes_status_badge_class($status)) ?>"><?= e(quizzes_status_label($status)) ?></span>
+                        <div class="quiz-my-card-badges">
+                            <span class="badge <?= e(quizzes_mode_badge_class($mode)) ?>"><?= e(quizzes_mode_label($mode)) ?></span>
+                            <span class="badge <?= e(quizzes_status_badge_class($status)) ?>"><?= e(quizzes_status_label($status)) ?></span>
+                        </div>
                     </div>
 
                     <?php if (!empty($quiz['description'])): ?>

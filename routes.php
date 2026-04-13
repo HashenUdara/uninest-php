@@ -103,11 +103,19 @@ route('POST', '/dashboard/subjects/{id}/topics/{topicId}/resources', 'resources_
 route('GET', '/dashboard/subjects/{id}/quizzes', 'quizzes_subject_index', ['middleware_auth', 'middleware_onboarding_complete']);
 route('GET', '/dashboard/subjects/{id}/quizzes/create', 'quizzes_subject_create_form', ['middleware_auth', 'middleware_onboarding_complete']);
 route('POST', '/dashboard/subjects/{id}/quizzes', 'quizzes_subject_store', ['middleware_auth', 'middleware_onboarding_complete']);
+route('GET', '/dashboard/subjects/{id}/quizzes/leaderboard', 'quizzes_subject_leaderboard_page', ['middleware_auth', 'middleware_onboarding_complete']);
 route('GET', '/dashboard/subjects/{id}/quizzes/{quizId}', 'quizzes_subject_show', ['middleware_auth', 'middleware_onboarding_complete']);
 route('POST', '/dashboard/subjects/{id}/quizzes/{quizId}/attempts/start', 'quizzes_attempt_start', ['middleware_auth', 'middleware_onboarding_complete']);
 route('GET', '/dashboard/subjects/{id}/quizzes/{quizId}/attempts/{attemptId}', 'quizzes_attempt_take', ['middleware_auth', 'middleware_onboarding_complete']);
+route('POST', '/dashboard/subjects/{id}/quizzes/{quizId}/attempts/{attemptId}/questions/{questionId}/check', 'quizzes_attempt_question_check', ['middleware_auth', 'middleware_onboarding_complete']);
 route('POST', '/dashboard/subjects/{id}/quizzes/{quizId}/attempts/{attemptId}/submit', 'quizzes_attempt_submit', ['middleware_auth', 'middleware_onboarding_complete']);
 route('GET', '/dashboard/subjects/{id}/quizzes/{quizId}/attempts/{attemptId}/result', 'quizzes_attempt_result', ['middleware_auth', 'middleware_onboarding_complete']);
+route('POST', '/dashboard/subjects/{id}/quizzes/{quizId}/comments', 'quizzes_quiz_comment_store', ['middleware_auth', 'middleware_onboarding_complete']);
+route('POST', '/dashboard/subjects/{id}/quizzes/{quizId}/comments/{commentId}', 'quizzes_quiz_comment_update', ['middleware_auth', 'middleware_onboarding_complete']);
+route('POST', '/dashboard/subjects/{id}/quizzes/{quizId}/comments/{commentId}/delete', 'quizzes_quiz_comment_delete', ['middleware_auth', 'middleware_onboarding_complete']);
+route('POST', '/dashboard/subjects/{id}/quizzes/{quizId}/questions/{questionId}/comments', 'quizzes_question_comment_store', ['middleware_auth', 'middleware_onboarding_complete']);
+route('POST', '/dashboard/subjects/{id}/quizzes/{quizId}/questions/{questionId}/comments/{commentId}', 'quizzes_question_comment_update', ['middleware_auth', 'middleware_onboarding_complete']);
+route('POST', '/dashboard/subjects/{id}/quizzes/{quizId}/questions/{questionId}/comments/{commentId}/delete', 'quizzes_question_comment_delete', ['middleware_auth', 'middleware_onboarding_complete']);
 
 // ──────────────────────────────────────
 // Subjects — Moderator CRUD
@@ -147,11 +155,13 @@ route('GET', '/my-resources/{id}/edit', 'resources_my_edit_form', ['middleware_a
 route('POST', '/my-resources/{id}', 'resources_my_update_action', ['middleware_auth', 'middleware_onboarding_complete']);
 route('POST', '/my-resources/{id}/delete', 'resources_my_delete_action', ['middleware_auth', 'middleware_onboarding_complete']);
 route('GET', '/my-quizzes', 'quizzes_my_index', ['middleware_auth', 'middleware_onboarding_complete']);
+route('GET', '/my-quiz-analytics', 'quizzes_my_analytics_index', ['middleware_auth', 'middleware_onboarding_complete']);
 route('GET', '/my-quizzes/{id}/edit', 'quizzes_my_edit_form', ['middleware_auth', 'middleware_onboarding_complete']);
 route('POST', '/my-quizzes/{id}', 'quizzes_my_update_action', ['middleware_auth', 'middleware_onboarding_complete']);
 route('POST', '/my-quizzes/{id}/submit', 'quizzes_my_submit_action', ['middleware_auth', 'middleware_onboarding_complete']);
 route('POST', '/my-quizzes/{id}/delete', 'quizzes_my_delete_action', ['middleware_auth', 'middleware_onboarding_complete']);
 route('GET', '/dashboard/quiz-requests', 'quizzes_review_queue_index', ['middleware_auth', 'middleware_onboarding_complete']);
+route('GET', '/dashboard/quiz-analytics', 'quizzes_reviewer_analytics_index', ['middleware_auth', 'middleware_onboarding_complete']);
 route('POST', '/dashboard/quiz-requests/{id}/approve', 'quizzes_review_approve', ['middleware_auth', 'middleware_onboarding_complete']);
 route('POST', '/dashboard/quiz-requests/{id}/reject', 'quizzes_review_reject', ['middleware_auth', 'middleware_onboarding_complete']);
 route('GET', '/saved-posts', 'community_saved_posts_index', ['middleware_auth', 'middleware_onboarding_complete']);

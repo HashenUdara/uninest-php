@@ -15,6 +15,9 @@ $buildTabUrl = static function (string $status): string {
         <h1>Quiz Approval Queue</h1>
         <p class="page-subtitle">Review submitted quizzes and publish approved content.</p>
     </div>
+    <div class="page-header-actions">
+        <a href="/dashboard/quiz-analytics" class="btn btn-outline"><?= ui_lucide_icon('chart-no-axes-column') ?> Quiz Analytics</a>
+    </div>
 </div>
 
 <div class="quiz-review-metrics">
@@ -59,6 +62,7 @@ $buildTabUrl = static function (string $status): string {
             <?php
             $quizId = (int) ($item['id'] ?? 0);
             $status = (string) ($item['status'] ?? 'pending');
+            $mode = (string) ($item['mode'] ?? 'practice');
             $samples = (array) ($samplesByQuiz[$quizId] ?? []);
             ?>
             <article class="card quiz-review-item">
@@ -68,7 +72,10 @@ $buildTabUrl = static function (string $status): string {
                             <h3><?= e((string) ($item['title'] ?? 'Untitled Quiz')) ?></h3>
                             <p><?= e((string) ($item['description'] ?? 'No description provided.')) ?></p>
                         </div>
-                        <span class="badge <?= e(quizzes_status_badge_class($status)) ?>"><?= e(quizzes_status_label($status)) ?></span>
+                        <div class="quiz-review-item-badges">
+                            <span class="badge <?= e(quizzes_mode_badge_class($mode)) ?>"><?= e(quizzes_mode_label($mode)) ?></span>
+                            <span class="badge <?= e(quizzes_status_badge_class($status)) ?>"><?= e(quizzes_status_label($status)) ?></span>
+                        </div>
                     </div>
 
                     <div class="quiz-review-item-meta">

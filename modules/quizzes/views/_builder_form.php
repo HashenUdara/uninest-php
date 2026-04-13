@@ -24,6 +24,11 @@ if ($subjectName === '-') {
     $subjectName = (string) ($subject['name'] ?? 'Subject');
 }
 
+$selectedMode = (string) ($form['mode'] ?? 'practice');
+if (!quizzes_mode_is_valid($selectedMode)) {
+    $selectedMode = 'practice';
+}
+
 $draftLabel = (bool) ($is_coordinator_creator ?? false) ? 'Save & Publish' : 'Save Draft';
 $submitLabel = (bool) ($is_coordinator_creator ?? false) ? 'Publish Quiz' : 'Submit For Review';
 $formAction = (string) ($form_action ?? '');
@@ -79,6 +84,26 @@ $pageSubtitle = (string) ($page_subtitle ?? 'Create a quiz.');
                         <label for="quiz-duration">Duration (minutes)</label>
                         <input id="quiz-duration" type="number" name="duration_minutes" min="5" max="180" value="<?= (int) ($form['duration_minutes'] ?? 30) ?>" required>
                     </div>
+
+                    <div class="form-group quiz-builder-grid-span-2">
+                        <label>Quiz Mode</label>
+                        <div class="quiz-builder-mode-grid" id="quiz-mode-grid">
+                            <label class="quiz-builder-mode-option">
+                                <input type="radio" name="mode" value="practice" <?= $selectedMode === 'practice' ? 'checked' : '' ?> required>
+                                <span>
+                                    <strong><?= ui_lucide_icon('circle-play') ?> Practice Mode</strong>
+                                    <small>Immediate per-question checking with lock after check.</small>
+                                </span>
+                            </label>
+                            <label class="quiz-builder-mode-option">
+                                <input type="radio" name="mode" value="exam" <?= $selectedMode === 'exam' ? 'checked' : '' ?> required>
+                                <span>
+                                    <strong><?= ui_lucide_icon('shield-check') ?> Exam Mode</strong>
+                                    <small>Feedback appears only on result screen after submit.</small>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </div>
         </article>
@@ -132,6 +157,7 @@ $pageSubtitle = (string) ($page_subtitle ?? 'Create a quiz.');
                 <ul class="quiz-builder-progress-list">
                     <li><span>Title</span> <strong id="quiz-progress-title">-</strong></li>
                     <li><span>Subject</span> <strong><?= e($subjectName) ?></strong></li>
+                    <li><span>Mode</span> <strong id="quiz-progress-mode">-</strong></li>
                     <li><span>Questions</span> <strong id="quiz-progress-count">0</strong></li>
                     <li><span>Status</span> <strong id="quiz-progress-status" class="quiz-progress-status">Incomplete</strong></li>
                 </ul>
@@ -145,7 +171,7 @@ $pageSubtitle = (string) ($page_subtitle ?? 'Create a quiz.');
                     <li>Write clear and concise questions.</li>
                     <li>Add 4 to 6 meaningful options.</li>
                     <li>Mark exactly one correct option.</li>
-                    <li>Review before submit or publish.</li>
+                    <li>Use practice mode for guided learning and exam mode for assessments.</li>
                 </ul>
             </div>
         </article>
@@ -167,6 +193,7 @@ $pageSubtitle = (string) ($page_subtitle ?? 'Create a quiz.');
     const titleInput = document.getElementById('quiz-title');
 
     const progressTitle = document.getElementById('quiz-progress-title');
+    const progressMode = document.getElementById('quiz-progress-mode');
     const progressCount = document.getElementById('quiz-progress-count');
     const progressStatus = document.getElementById('quiz-progress-status');
 
@@ -283,19 +310,33 @@ $pageSubtitle = (string) ($page_subtitle ?? 'Create a quiz.');
         }
     }
 
+    function selectedMode() {
+        const checked = form.querySelector('input[name="mode"]:checked');
+        return checked ? String(checked.value || '') : '';
+    }
+
+    function modeLabel(mode) {
+        return mode === 'practice' ? 'Practice' : mode === 'exam' ? 'Exam' : '-';
+    }
+
     function updateProgress() {
         const cards = Array.from(questionShell.querySelectorAll('.quiz-builder-question'));
         const titleText = (titleInput ? titleInput.value.trim() : '');
+        const mode = selectedMode();
 
         if (progressTitle) {
             progressTitle.textContent = titleText === '' ? '-' : titleText;
+        }
+
+        if (progressMode) {
+            progressMode.textContent = modeLabel(mode);
         }
 
         if (progressCount) {
             progressCount.textContent = String(cards.length);
         }
 
-        let complete = titleText !== '';
+        let complete = titleText !== '' && (mode === 'practice' || mode === 'exam');
 
         cards.forEach((card) => {
             const questionText = card.querySelector('textarea');
@@ -407,6 +448,12 @@ $pageSubtitle = (string) ($page_subtitle ?? 'Create a quiz.');
 
     questionShell.addEventListener('input', updateProgress);
     questionShell.addEventListener('change', updateProgress);
+    form.addEventListener('change', function (event) {
+        const target = event.target;
+        if (target instanceof Element && target.matches('input[name="mode"]')) {
+            updateProgress();
+        }
+    });
     if (titleInput) {
         titleInput.addEventListener('input', updateProgress);
     }

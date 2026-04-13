@@ -18,6 +18,7 @@ $isKuppiRequested = (
 $isQuizHub = $currentPath === '/dashboard/quizzes'
     || (str_starts_with($currentPath, '/dashboard/subjects/') && str_contains($currentPath, '/quizzes'));
 $isQuizRequests = str_starts_with($currentPath, '/dashboard/quiz-requests');
+$isQuizAnalytics = str_starts_with($currentPath, '/dashboard/quiz-analytics');
 ?>
 <nav class="sidebar-nav">
     <div class="sidebar-section-label">Overview</div>
@@ -30,6 +31,7 @@ $isQuizRequests = str_starts_with($currentPath, '/dashboard/quiz-requests');
         <li><a href="/admin/batch-requests" class="<?= is_current_url('/admin/batch-requests') ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('inbox') ?></span><span>Batch Requests</span></a></li>
         <li><a href="/admin/student-requests" class="<?= is_current_url('/admin/student-requests') ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('users') ?></span><span>Student Requests</span></a></li>
         <li><a href="/dashboard/quiz-requests" class="<?= $isQuizRequests ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('check-check') ?></span><span>Quiz Requests</span></a></li>
+        <li><a href="/dashboard/quiz-analytics" class="<?= $isQuizAnalytics ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('chart-no-axes-column') ?></span><span>Quiz Analytics</span></a></li>
     </ul>
 
     <div class="sidebar-section-label">Content</div>

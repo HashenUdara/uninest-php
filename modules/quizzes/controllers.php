@@ -24,6 +24,26 @@ function quizzes_current_batch_id(): int
     return (int) (auth_user()['batch_id'] ?? 0);
 }
 
+function quizzes_quiz_path(int $subjectId, int $quizId): string
+{
+    return '/dashboard/subjects/' . $subjectId . '/quizzes/' . $quizId;
+}
+
+function quizzes_attempt_path(int $subjectId, int $quizId, int $attemptId): string
+{
+    return quizzes_quiz_path($subjectId, $quizId) . '/attempts/' . $attemptId;
+}
+
+function quizzes_attempt_result_path(int $subjectId, int $quizId, int $attemptId): string
+{
+    return quizzes_attempt_path($subjectId, $quizId, $attemptId) . '/result';
+}
+
+function quizzes_subject_list_path(int $subjectId): string
+{
+    return '/dashboard/subjects/' . $subjectId . '/quizzes';
+}
+
 function quizzes_require_creator_role(): void
 {
     if (!quizzes_is_creator_role(user_role())) {
@@ -52,6 +72,18 @@ function quizzes_resolve_readable_subject_or_abort(int $subjectId): array
     }
 
     return $subject;
+}
+
+function quizzes_resolve_published_quiz_or_abort(int $subjectId, int $quizId): array
+{
+    quizzes_resolve_readable_subject_or_abort($subjectId);
+
+    $quiz = quizzes_find_subject_published($quizId, $subjectId);
+    if (!$quiz) {
+        abort(404, 'Quiz not found.');
+    }
+
+    return $quiz;
 }
 
 function quizzes_target_status_for_creator(string $intent): string
@@ -116,6 +148,7 @@ function quizzes_extract_form_payload(array $source): array
         'title' => trim((string) ($source['title'] ?? '')),
         'description' => trim((string) ($source['description'] ?? '')),
         'duration_minutes' => (int) ($source['duration_minutes'] ?? 0),
+        'mode' => trim((string) ($source['mode'] ?? '')),
         'intent' => $intent,
         'questions' => quizzes_normalize_questions_input($source['questions'] ?? []),
     ];
@@ -161,6 +194,7 @@ function quizzes_validate_form_payload(array $payload): array
     $title = trim((string) ($payload['title'] ?? ''));
     $description = trim((string) ($payload['description'] ?? ''));
     $durationMinutes = (int) ($payload['duration_minutes'] ?? 0);
+    $mode = trim((string) ($payload['mode'] ?? ''));
     $questions = (array) ($payload['questions'] ?? []);
 
     if ($title === '') {
@@ -171,6 +205,10 @@ function quizzes_validate_form_payload(array $payload): array
 
     if ($durationMinutes < 5 || $durationMinutes > 180) {
         $errors[] = 'Duration must be between 5 and 180 minutes.';
+    }
+
+    if (!quizzes_mode_is_valid($mode)) {
+        $errors[] = 'Quiz mode is required.';
     }
 
     if (count($questions) < 1) {
@@ -224,6 +262,7 @@ function quizzes_validate_form_payload(array $payload): array
             'title' => $title,
             'description' => $description === '' ? null : $description,
             'duration_minutes' => $durationMinutes,
+            'mode' => $mode,
             'intent' => (string) ($payload['intent'] ?? 'draft'),
             'questions' => $validatedQuestions,
         ],
@@ -236,6 +275,7 @@ function quizzes_default_form_payload(): array
         'title' => '',
         'description' => '',
         'duration_minutes' => 30,
+        'mode' => 'practice',
         'intent' => 'draft',
         'questions' => [[
             'text' => '',
@@ -280,10 +320,16 @@ function quizzes_form_payload_from_quiz(array $quiz, array $questionRows): array
         $questions = quizzes_default_form_payload()['questions'];
     }
 
+    $mode = trim((string) ($quiz['mode'] ?? ''));
+    if (!quizzes_mode_is_valid($mode)) {
+        $mode = 'practice';
+    }
+
     return [
         'title' => (string) ($quiz['title'] ?? ''),
         'description' => (string) ($quiz['description'] ?? ''),
         'duration_minutes' => (int) ($quiz['duration_minutes'] ?? 30),
+        'mode' => $mode,
         'intent' => 'draft',
         'questions' => $questions,
     ];
@@ -297,6 +343,9 @@ function quizzes_form_payload_from_old_or_default(?array $quiz = null, array $qu
         if (empty($oldPayload['questions'])) {
             $oldPayload['questions'] = quizzes_default_form_payload()['questions'];
         }
+        if (!quizzes_mode_is_valid((string) ($oldPayload['mode'] ?? ''))) {
+            $oldPayload['mode'] = quizzes_default_form_payload()['mode'];
+        }
 
         return $oldPayload;
     }
@@ -308,6 +357,51 @@ function quizzes_form_payload_from_old_or_default(?array $quiz = null, array $qu
     return quizzes_default_form_payload();
 }
 
+function quizzes_comment_can_delete(array $quiz, array $comment): bool
+{
+    $currentUserId = quizzes_current_user_id();
+    $commentAuthorId = (int) ($comment['user_id'] ?? 0);
+
+    if ($commentAuthorId > 0 && $commentAuthorId === $currentUserId) {
+        return true;
+    }
+
+    $role = (string) user_role();
+    if ($role === 'admin') {
+        return true;
+    }
+
+    if ($role === 'moderator') {
+        $subjectBatchId = (int) ($quiz['subject_batch_id'] ?? 0);
+        return $subjectBatchId > 0 && $subjectBatchId === quizzes_current_batch_id();
+    }
+
+    if ($role === 'coordinator') {
+        return subjects_find_for_coordinator((int) ($quiz['subject_id'] ?? 0), $currentUserId) !== null;
+    }
+
+    return false;
+}
+
+function quizzes_enrich_comment_tree(array $nodes, array $quiz, string $targetType): array
+{
+    $currentUserId = quizzes_current_user_id();
+    $maxDepth = comments_max_depth_for_target($targetType);
+    $enriched = [];
+
+    foreach ($nodes as $node) {
+        $authorId = (int) ($node['user_id'] ?? 0);
+        $depth = (int) ($node['depth'] ?? 0);
+        $node['can_edit'] = $authorId > 0 && $authorId === $currentUserId;
+        $node['can_delete'] = quizzes_comment_can_delete($quiz, $node);
+        $node['can_reply'] = auth_check() && $depth < $maxDepth;
+        $node['children'] = quizzes_enrich_comment_tree((array) ($node['children'] ?? []), $quiz, $targetType);
+        $enriched[] = $node;
+    }
+
+    return $enriched;
+}
+
 function quizzes_subject_index(string $id): void
 {
     $subjectId = (int) $id;
@@ -316,6 +410,7 @@ function quizzes_subject_index(string $id): void
     view('quizzes::index', [
         'subject' => $subject,
         'quizzes' => quizzes_subject_published_list_for_viewer($subjectId, quizzes_current_user_id()),
+        'leaderboard_top' => quizzes_subject_leaderboard_top($subjectId, 5),
         'role_label' => quizzes_role_label(),
         'can_create' => quizzes_is_creator_role(user_role()),
     ], 'dashboard');
@@ -339,6 +434,8 @@ function quizzes_hub_index(): void
             ? quizzes_pending_count_for_reviewer($viewerId, $role, $batchId)
             : 0,
         'my_quiz_count' => $canCreate ? quizzes_count_created_by_user($viewerId) : 0,
+        'can_view_personal_analytics' => true,
+        'can_view_reviewer_analytics' => $canReview,
     ], 'dashboard');
 }
 
@@ -363,7 +460,7 @@ function quizzes_subject_store(string $id): void
     quizzes_require_creator_role();
 
     $subjectId = (int) $id;
-    $subject = quizzes_resolve_readable_subject_or_abort($subjectId);
+    quizzes_resolve_readable_subject_or_abort($subjectId);
 
     $payload = quizzes_extract_form_payload($_POST);
     $validated = quizzes_validate_form_payload($payload);
@@ -386,6 +483,7 @@ function quizzes_subject_store(string $id): void
             'title' => $validatedPayload['title'],
             'description' => $validatedPayload['description'],
             'duration_minutes' => $validatedPayload['duration_minutes'],
+            'mode' => $validatedPayload['mode'],
             'status' => $targetStatus,
             'rejection_reason' => null,
             'reviewed_by_user_id' => $reviewedByUserId,
@@ -415,20 +513,53 @@ function quizzes_subject_show(string $id, string $quizId): void
     }
 
     $viewerId = quizzes_current_user_id();
+    $quizMode = (string) ($quiz['mode'] ?? 'exam');
+
     $inProgressAttempt = quizzes_find_in_progress_attempt($quizIdInt, $viewerId);
 
     if ($inProgressAttempt && quizzes_attempt_is_expired($inProgressAttempt)) {
-        quizzes_submit_attempt((int) $inProgressAttempt['id'], $quizIdInt, $viewerId, []);
+        quizzes_submit_attempt((int) $inProgressAttempt['id'], $quizIdInt, $viewerId, [], $quizMode);
         $inProgressAttempt = null;
+    }
+
+    $questions = quizzes_questions_with_options($quizIdInt, false);
+    $questionIds = array_values(array_map(static fn(array $row): int => (int) ($row['id'] ?? 0), $questions));
+
+    $quizComments = comments_tree_for_target('quiz', $quizIdInt);
+    $quizComments = quizzes_enrich_comment_tree($quizComments, $quiz, 'quiz');
+
+    $questionCommentCounts = comments_counts_for_target_ids('quiz_question', $questionIds);
+    $questionComments = [];
+    foreach ($questionIds as $questionId) {
+        $tree = comments_tree_for_target('quiz_question', $questionId);
+        $questionComments[$questionId] = quizzes_enrich_comment_tree($tree, $quiz, 'quiz_question');
     }
 
     view('quizzes::show', [
         'subject' => $subject,
         'quiz' => $quiz,
-        'questions' => quizzes_questions_with_options($quizIdInt, false),
+        'questions' => $questions,
         'attempt_count' => quizzes_attempt_count_for_user($quizIdInt, $viewerId),
         'best_attempt' => quizzes_best_attempt_for_user($quizIdInt, $viewerId),
         'in_progress_attempt' => $inProgressAttempt,
+        'leaderboard_top' => quizzes_subject_leaderboard_top($subjectId, 5),
+        'quiz_comments' => $quizComments,
+        'quiz_comment_count' => comments_count_for_target('quiz', $quizIdInt),
+        'question_comments' => $questionComments,
+        'question_comment_counts' => $questionCommentCounts,
+        'comment_max_level' => comments_max_depth_for_target('quiz') + 1,
+        'role_label' => quizzes_role_label(),
+    ], 'dashboard');
+}
+
+function quizzes_subject_leaderboard_page(string $id): void
+{
+    $subjectId = (int) $id;
+    $subject = quizzes_resolve_readable_subject_or_abort($subjectId);
+
+    view('quizzes::leaderboard', [
+        'subject' => $subject,
+        'leaderboard' => quizzes_subject_leaderboard($subjectId),
         'role_label' => quizzes_role_label(),
     ], 'dashboard');
 }
@@ -447,22 +578,23 @@ function quizzes_attempt_start(string $id, string $quizId): void
         abort(404, 'Quiz not found.');
     }
 
+    $quizMode = (string) ($quiz['mode'] ?? 'exam');
     $existing = quizzes_find_in_progress_attempt($quizIdInt, $viewerId);
     if ($existing) {
         $existingAttemptId = (int) ($existing['id'] ?? 0);
 
         if (quizzes_attempt_is_expired($existing)) {
-            quizzes_submit_attempt($existingAttemptId, $quizIdInt, $viewerId, []);
-            redirect('/dashboard/subjects/' . $subjectId . '/quizzes/' . $quizIdInt . '/attempts/' . $existingAttemptId . '/result');
+            quizzes_submit_attempt($existingAttemptId, $quizIdInt, $viewerId, [], $quizMode);
+            redirect(quizzes_attempt_result_path($subjectId, $quizIdInt, $existingAttemptId));
         }
 
-        redirect('/dashboard/subjects/' . $subjectId . '/quizzes/' . $quizIdInt . '/attempts/' . $existingAttemptId);
+        redirect(quizzes_attempt_path($subjectId, $quizIdInt, $existingAttemptId));
     }
 
     $questionCount = quizzes_question_count($quizIdInt);
     if ($questionCount < 1) {
         flash('error', 'This quiz has no questions yet.');
-        redirect('/dashboard/subjects/' . $subjectId . '/quizzes/' . $quizIdInt);
+        redirect(quizzes_quiz_path($subjectId, $quizIdInt));
     }
 
     try {
@@ -474,10 +606,10 @@ function quizzes_attempt_start(string $id, string $quizId): void
         );
     } catch (Throwable) {
         flash('error', 'Unable to start attempt right now.');
-        redirect('/dashboard/subjects/' . $subjectId . '/quizzes/' . $quizIdInt);
+        redirect(quizzes_quiz_path($subjectId, $quizIdInt));
     }
 
-    redirect('/dashboard/subjects/' . $subjectId . '/quizzes/' . $quizIdInt . '/attempts/' . $attemptId);
+    redirect(quizzes_attempt_path($subjectId, $quizIdInt, $attemptId));
 }
 
 function quizzes_attempt_take(string $id, string $quizId, string $attemptId): void
@@ -493,18 +625,20 @@ function quizzes_attempt_take(string $id, string $quizId, string $attemptId): vo
         abort(404, 'Quiz not found.');
     }
 
+    $quizMode = (string) ($quiz['mode'] ?? 'exam');
+
     $attempt = quizzes_find_attempt_for_user($attemptIdInt, $quizIdInt, $viewerId);
     if (!$attempt) {
         abort(404, 'Attempt not found.');
     }
 
     if ((string) ($attempt['status'] ?? '') !== 'in_progress') {
-        redirect('/dashboard/subjects/' . $subjectId . '/quizzes/' . $quizIdInt . '/attempts/' . $attemptIdInt . '/result');
+        redirect(quizzes_attempt_result_path($subjectId, $quizIdInt, $attemptIdInt));
     }
 
     if (quizzes_attempt_is_expired($attempt)) {
-        quizzes_submit_attempt($attemptIdInt, $quizIdInt, $viewerId, []);
-        redirect('/dashboard/subjects/' . $subjectId . '/quizzes/' . $quizIdInt . '/attempts/' . $attemptIdInt . '/result');
+        quizzes_submit_attempt($attemptIdInt, $quizIdInt, $viewerId, [], $quizMode);
+        redirect(quizzes_attempt_result_path($subjectId, $quizIdInt, $attemptIdInt));
     }
 
     view('quizzes::attempt', [
@@ -513,9 +647,102 @@ function quizzes_attempt_take(string $id, string $quizId, string $attemptId): vo
         'attempt' => $attempt,
         'questions' => quizzes_questions_with_options($quizIdInt, false),
         'selected_answers' => quizzes_attempt_answers_map($attemptIdInt),
+        'checked_answers' => $quizMode === 'practice' ? quizzes_attempt_checked_answers($attemptIdInt) : [],
         'seconds_remaining' => quizzes_attempt_seconds_remaining($attempt),
         'role_label' => quizzes_role_label(),
     ], 'dashboard');
+}
+
+function quizzes_attempt_question_check(string $id, string $quizId, string $attemptId, string $questionId): void
+{
+    csrf_check();
+
+    $subjectId = (int) $id;
+    $quizIdInt = (int) $quizId;
+    $attemptIdInt = (int) $attemptId;
+    $questionIdInt = (int) $questionId;
+    $viewerId = quizzes_current_user_id();
+
+    quizzes_resolve_readable_subject_or_abort($subjectId);
+    $quiz = quizzes_find_subject_published($quizIdInt, $subjectId);
+    if (!$quiz) {
+        abort(404, 'Quiz not found.');
+    }
+
+    $quizMode = (string) ($quiz['mode'] ?? 'exam');
+    if ($quizMode !== 'practice') {
+        abort(403, 'Immediate checking is available only in practice mode.');
+    }
+
+    $attempt = quizzes_find_attempt_for_user($attemptIdInt, $quizIdInt, $viewerId);
+    if (!$attempt) {
+        abort(404, 'Attempt not found.');
+    }
+
+    if ((string) ($attempt['status'] ?? '') !== 'in_progress') {
+        redirect(quizzes_attempt_result_path($subjectId, $quizIdInt, $attemptIdInt));
+    }
+
+    if (quizzes_attempt_is_expired($attempt)) {
+        quizzes_submit_attempt($attemptIdInt, $quizIdInt, $viewerId, [], $quizMode);
+        redirect(quizzes_attempt_result_path($subjectId, $quizIdInt, $attemptIdInt));
+    }
+
+    $selectedOptionId = (int) request_input('selected_option_id', 0);
+    if ($selectedOptionId <= 0) {
+        $rawAnswers = $_POST['answers'] ?? [];
+        if (is_array($rawAnswers) && isset($rawAnswers[$questionIdInt])) {
+            $selectedOptionId = (int) $rawAnswers[$questionIdInt];
+        }
+    }
+
+    if ($selectedOptionId <= 0) {
+        flash('error', 'Select an answer option before checking.');
+        redirect(quizzes_attempt_path($subjectId, $quizIdInt, $attemptIdInt) . '#quiz-question-' . $questionIdInt);
+    }
+
+    try {
+        $check = quizzes_check_practice_answer($attemptIdInt, $quizIdInt, $viewerId, $questionIdInt, $selectedOptionId);
+    } catch (Throwable) {
+        flash('error', 'Unable to check this answer right now.');
+        redirect(quizzes_attempt_path($subjectId, $quizIdInt, $attemptIdInt) . '#quiz-question-' . $questionIdInt);
+    }
+
+    if (!($check['ok'] ?? false)) {
+        $reason = (string) ($check['reason'] ?? '');
+
+        if ($reason === 'attempt_not_in_progress') {
+            redirect(quizzes_attempt_result_path($subjectId, $quizIdInt, $attemptIdInt));
+        }
+
+        if ($reason === 'attempt_expired') {
+            quizzes_submit_attempt($attemptIdInt, $quizIdInt, $viewerId, [], $quizMode);
+            redirect(quizzes_attempt_result_path($subjectId, $quizIdInt, $attemptIdInt));
+        }
+
+        if ($reason === 'invalid_question' || $reason === 'attempt_not_found') {
+            abort(404, 'Question or attempt not found.');
+        }
+
+        if ($reason === 'invalid_option') {
+            flash('error', 'Selected option is invalid for this question.');
+            redirect(quizzes_attempt_path($subjectId, $quizIdInt, $attemptIdInt) . '#quiz-question-' . $questionIdInt);
+        }
+
+        if ($reason === 'already_checked') {
+            flash('warning', 'This question was already checked and is now locked.');
+            redirect(quizzes_attempt_path($subjectId, $quizIdInt, $attemptIdInt) . '#quiz-question-' . $questionIdInt);
+        }
+
+        flash('error', 'Unable to check this answer.');
+        redirect(quizzes_attempt_path($subjectId, $quizIdInt, $attemptIdInt) . '#quiz-question-' . $questionIdInt);
+    }
+
+    flash('success', !empty($check['is_correct'])
+        ? 'Correct. This question is now locked for this attempt.'
+        : 'Checked. This answer is incorrect, and the question is now locked.');
+
+    redirect(quizzes_attempt_path($subjectId, $quizIdInt, $attemptIdInt) . '#quiz-question-' . $questionIdInt);
 }
 
 function quizzes_attempt_submit(string $id, string $quizId, string $attemptId): void
@@ -533,13 +760,14 @@ function quizzes_attempt_submit(string $id, string $quizId, string $attemptId): 
         abort(404, 'Quiz not found.');
     }
 
+    $quizMode = (string) ($quiz['mode'] ?? 'exam');
     $attempt = quizzes_find_attempt_for_user($attemptIdInt, $quizIdInt, $viewerId);
     if (!$attempt) {
         abort(404, 'Attempt not found.');
     }
 
     if ((string) ($attempt['status'] ?? '') !== 'in_progress') {
-        redirect('/dashboard/subjects/' . $subjectId . '/quizzes/' . $quizIdInt . '/attempts/' . $attemptIdInt . '/result');
+        redirect(quizzes_attempt_result_path($subjectId, $quizIdInt, $attemptIdInt));
     }
 
     $rawAnswers = $_POST['answers'] ?? [];
@@ -557,17 +785,17 @@ function quizzes_attempt_submit(string $id, string $quizId, string $attemptId): 
     }
 
     try {
-        $result = quizzes_submit_attempt($attemptIdInt, $quizIdInt, $viewerId, $selected);
+        $result = quizzes_submit_attempt($attemptIdInt, $quizIdInt, $viewerId, $selected, $quizMode);
         if (!$result) {
             flash('error', 'Unable to submit this attempt.');
-            redirect('/dashboard/subjects/' . $subjectId . '/quizzes/' . $quizIdInt);
+            redirect(quizzes_quiz_path($subjectId, $quizIdInt));
         }
     } catch (Throwable) {
         flash('error', 'Unable to submit this attempt right now.');
-        redirect('/dashboard/subjects/' . $subjectId . '/quizzes/' . $quizIdInt);
+        redirect(quizzes_quiz_path($subjectId, $quizIdInt));
     }
 
-    redirect('/dashboard/subjects/' . $subjectId . '/quizzes/' . $quizIdInt . '/attempts/' . $attemptIdInt . '/result');
+    redirect(quizzes_attempt_result_path($subjectId, $quizIdInt, $attemptIdInt));
 }
 
 function quizzes_attempt_result(string $id, string $quizId, string $attemptId): void
@@ -587,7 +815,7 @@ function quizzes_attempt_result(string $id, string $quizId, string $attemptId): 
     if (!$attempt) {
         $inProgress = quizzes_find_attempt_for_user($attemptIdInt, $quizIdInt, $viewerId);
         if ($inProgress && (string) ($inProgress['status'] ?? '') === 'in_progress') {
-            redirect('/dashboard/subjects/' . $subjectId . '/quizzes/' . $quizIdInt . '/attempts/' . $attemptIdInt);
+            redirect(quizzes_attempt_path($subjectId, $quizIdInt, $attemptIdInt));
         }
         abort(404, 'Quiz result not found.');
     }
@@ -599,6 +827,45 @@ function quizzes_attempt_result(string $id, string $quizId, string $attemptId): 
         'result_rows' => quizzes_attempt_result_rows($attemptIdInt),
         'best_attempt' => quizzes_best_attempt_for_user($quizIdInt, $viewerId),
         'attempt_count' => quizzes_attempt_count_for_user($quizIdInt, $viewerId),
+        'role_label' => quizzes_role_label(),
+    ], 'dashboard');
+}
+
+function quizzes_my_analytics_index(): void
+{
+    $viewerId = quizzes_current_user_id();
+
+    view('quizzes::my_analytics', [
+        'summary' => quizzes_student_analytics_summary($viewerId),
+        'trend' => quizzes_student_analytics_trend($viewerId, 12),
+        'mode_breakdown' => quizzes_student_analytics_mode_breakdown($viewerId),
+        'most_missed' => quizzes_student_analytics_most_missed_questions($viewerId, 10),
+        'role_label' => quizzes_role_label(),
+    ], 'dashboard');
+}
+
+function quizzes_reviewer_analytics_index(): void
+{
+    quizzes_require_reviewer_role();
+
+    $role = (string) user_role();
+    $reviewerId = quizzes_current_user_id();
+    $reviewerBatchId = quizzes_current_batch_id();
+
+    $subjects = quizzes_reviewer_subject_options($role, $reviewerId, $reviewerBatchId);
+    $subjectIds = array_values(array_map(static fn(array $row): int => (int) ($row['id'] ?? 0), $subjects));
+
+    $selectedSubjectId = (int) request_input('subject_id', 0);
+    if ($selectedSubjectId > 0 && !in_array($selectedSubjectId, $subjectIds, true)) {
+        $selectedSubjectId = 0;
+    }
+
+    view('quizzes::reviewer_analytics', [
+        'subjects' => $subjects,
+        'selected_subject_id' => $selectedSubjectId,
+        'summary' => quizzes_reviewer_analytics_summary($role, $reviewerId, $reviewerBatchId, $selectedSubjectId > 0 ? $selectedSubjectId : null),
+        'mode_breakdown' => quizzes_reviewer_analytics_mode_breakdown($role, $reviewerId, $reviewerBatchId, $selectedSubjectId > 0 ? $selectedSubjectId : null),
+        'difficult_questions' => quizzes_reviewer_analytics_difficult_questions($role, $reviewerId, $reviewerBatchId, $selectedSubjectId > 0 ? $selectedSubjectId : null, 15),
         'role_label' => quizzes_role_label(),
     ], 'dashboard');
 }
@@ -677,6 +944,7 @@ function quizzes_my_update_action(string $id): void
             'title' => $validatedPayload['title'],
             'description' => $validatedPayload['description'],
             'duration_minutes' => $validatedPayload['duration_minutes'],
+            'mode' => $validatedPayload['mode'],
             'status' => $targetStatus,
             'rejection_reason' => null,
             'reviewed_by_user_id' => $targetStatus === 'approved' ? $ownerId : null,
@@ -751,7 +1019,14 @@ function quizzes_my_delete_action(string $id): void
         abort(403, 'Only draft or rejected quizzes can be deleted.');
     }
 
-    if (!quizzes_delete_editable_owned($quizId, $ownerId)) {
+    try {
+        $deleted = quizzes_delete_editable_owned($quizId, $ownerId);
+    } catch (Throwable) {
+        flash('error', 'Unable to delete this quiz right now.');
+        redirect('/my-quizzes');
+    }
+
+    if (!$deleted) {
         flash('error', 'Unable to delete this quiz.');
         redirect('/my-quizzes');
     }
@@ -836,4 +1111,273 @@ function quizzes_review_reject(string $id): void
 
     flash('success', 'Quiz rejected.');
     redirect('/dashboard/quiz-requests?status=pending');
+}
+
+function quizzes_quiz_comment_store(string $id, string $quizId): void
+{
+    csrf_check();
+
+    $subjectId = (int) $id;
+    $quizIdInt = (int) $quizId;
+
+    $quiz = quizzes_resolve_published_quiz_or_abort($subjectId, $quizIdInt);
+    $quizPath = quizzes_quiz_path($subjectId, $quizIdInt);
+
+    $validation = comments_validate_body((string) request_input('body', ''));
+    if (!empty($validation['errors'])) {
+        flash('error', implode(' ', $validation['errors']));
+        redirect($quizPath . '#quiz-discussion');
+    }
+
+    $targetType = 'quiz';
+    $targetId = $quizIdInt;
+
+    $parentCommentId = (int) request_input('parent_comment_id', 0);
+    $parentId = null;
+    $depth = 0;
+
+    if ($parentCommentId > 0) {
+        $parent = comments_find_target_comment($parentCommentId, $targetType, $targetId);
+        if (!$parent) {
+            flash('error', 'Reply target not found.');
+            redirect($quizPath . '#quiz-discussion');
+        }
+
+        $depth = (int) ($parent['depth'] ?? 0) + 1;
+        if ($depth > comments_max_depth_for_target($targetType)) {
+            flash('error', 'Reply depth limit reached.');
+            redirect($quizPath . '#quiz-discussion');
+        }
+
+        $parentId = $parentCommentId;
+    }
+
+    try {
+        comments_insert(
+            $targetType,
+            $targetId,
+            quizzes_current_user_id(),
+            $validation['body'],
+            $parentId,
+            $depth
+        );
+    } catch (Throwable) {
+        flash('error', 'Unable to post comment right now. Please try again.');
+        redirect($quizPath . '#quiz-discussion');
+    }
+
+    flash('success', 'Comment posted.');
+    redirect($quizPath . '#quiz-discussion');
+}
+
+function quizzes_quiz_comment_update(string $id, string $quizId, string $commentId): void
+{
+    csrf_check();
+
+    $subjectId = (int) $id;
+    $quizIdInt = (int) $quizId;
+    $commentIdInt = (int) $commentId;
+
+    quizzes_resolve_published_quiz_or_abort($subjectId, $quizIdInt);
+    $quizPath = quizzes_quiz_path($subjectId, $quizIdInt);
+
+    $comment = comments_find_target_comment($commentIdInt, 'quiz', $quizIdInt);
+    if (!$comment) {
+        abort(404, 'Comment not found.');
+    }
+
+    if ((int) ($comment['user_id'] ?? 0) !== quizzes_current_user_id()) {
+        abort(403, 'You can only edit your own comments.');
+    }
+
+    $validation = comments_validate_body((string) request_input('body', ''));
+    if (!empty($validation['errors'])) {
+        flash('error', implode(' ', $validation['errors']));
+        redirect($quizPath . '#quiz-discussion');
+    }
+
+    if (!comments_update_body_by_author($commentIdInt, quizzes_current_user_id(), $validation['body'])) {
+        flash('error', 'Unable to update this comment.');
+        redirect($quizPath . '#quiz-discussion');
+    }
+
+    flash('success', 'Comment updated.');
+    redirect($quizPath . '#quiz-discussion');
+}
+
+function quizzes_quiz_comment_delete(string $id, string $quizId, string $commentId): void
+{
+    csrf_check();
+
+    $subjectId = (int) $id;
+    $quizIdInt = (int) $quizId;
+    $commentIdInt = (int) $commentId;
+
+    $quiz = quizzes_resolve_published_quiz_or_abort($subjectId, $quizIdInt);
+    $quizPath = quizzes_quiz_path($subjectId, $quizIdInt);
+
+    $comment = comments_find_target_comment($commentIdInt, 'quiz', $quizIdInt);
+    if (!$comment) {
+        abort(404, 'Comment not found.');
+    }
+
+    if (!quizzes_comment_can_delete($quiz, $comment)) {
+        abort(403, 'You do not have permission to delete this comment.');
+    }
+
+    if (!comments_delete_by_id($commentIdInt)) {
+        flash('error', 'Unable to delete this comment.');
+        redirect($quizPath . '#quiz-discussion');
+    }
+
+    flash('success', 'Comment deleted.');
+    redirect($quizPath . '#quiz-discussion');
+}
+
+function quizzes_question_comment_store(string $id, string $quizId, string $questionId): void
+{
+    csrf_check();
+
+    $subjectId = (int) $id;
+    $quizIdInt = (int) $quizId;
+    $questionIdInt = (int) $questionId;
+
+    quizzes_resolve_readable_subject_or_abort($subjectId);
+    $quiz = quizzes_find_subject_published($quizIdInt, $subjectId);
+    if (!$quiz) {
+        abort(404, 'Quiz not found.');
+    }
+
+    if (!quizzes_find_question_for_quiz($quizIdInt, $questionIdInt)) {
+        abort(404, 'Question not found.');
+    }
+
+    $quizPath = quizzes_quiz_path($subjectId, $quizIdInt);
+    $validation = comments_validate_body((string) request_input('body', ''));
+    if (!empty($validation['errors'])) {
+        flash('error', implode(' ', $validation['errors']));
+        redirect($quizPath . '#question-discussion-' . $questionIdInt);
+    }
+
+    $targetType = 'quiz_question';
+    $targetId = $questionIdInt;
+
+    $parentCommentId = (int) request_input('parent_comment_id', 0);
+    $parentId = null;
+    $depth = 0;
+
+    if ($parentCommentId > 0) {
+        $parent = comments_find_target_comment($parentCommentId, $targetType, $targetId);
+        if (!$parent) {
+            flash('error', 'Reply target not found.');
+            redirect($quizPath . '#question-discussion-' . $questionIdInt);
+        }
+
+        $depth = (int) ($parent['depth'] ?? 0) + 1;
+        if ($depth > comments_max_depth_for_target($targetType)) {
+            flash('error', 'Reply depth limit reached.');
+            redirect($quizPath . '#question-discussion-' . $questionIdInt);
+        }
+
+        $parentId = $parentCommentId;
+    }
+
+    try {
+        comments_insert(
+            $targetType,
+            $targetId,
+            quizzes_current_user_id(),
+            $validation['body'],
+            $parentId,
+            $depth
+        );
+    } catch (Throwable) {
+        flash('error', 'Unable to post comment right now. Please try again.');
+        redirect($quizPath . '#question-discussion-' . $questionIdInt);
+    }
+
+    flash('success', 'Comment posted.');
+    redirect($quizPath . '#question-discussion-' . $questionIdInt);
+}
+
+function quizzes_question_comment_update(string $id, string $quizId, string $questionId, string $commentId): void
+{
+    csrf_check();
+
+    $subjectId = (int) $id;
+    $quizIdInt = (int) $quizId;
+    $questionIdInt = (int) $questionId;
+    $commentIdInt = (int) $commentId;
+
+    quizzes_resolve_readable_subject_or_abort($subjectId);
+    $quiz = quizzes_find_subject_published($quizIdInt, $subjectId);
+    if (!$quiz) {
+        abort(404, 'Quiz not found.');
+    }
+
+    if (!quizzes_find_question_for_quiz($quizIdInt, $questionIdInt)) {
+        abort(404, 'Question not found.');
+    }
+
+    $quizPath = quizzes_quiz_path($subjectId, $quizIdInt);
+    $comment = comments_find_target_comment($commentIdInt, 'quiz_question', $questionIdInt);
+    if (!$comment) {
+        abort(404, 'Comment not found.');
+    }
+
+    if ((int) ($comment['user_id'] ?? 0) !== quizzes_current_user_id()) {
+        abort(403, 'You can only edit your own comments.');
+    }
+
+    $validation = comments_validate_body((string) request_input('body', ''));
+    if (!empty($validation['errors'])) {
+        flash('error', implode(' ', $validation['errors']));
+        redirect($quizPath . '#question-discussion-' . $questionIdInt);
+    }
+
+    if (!comments_update_body_by_author($commentIdInt, quizzes_current_user_id(), $validation['body'])) {
+        flash('error', 'Unable to update this comment.');
+        redirect($quizPath . '#question-discussion-' . $questionIdInt);
+    }
+
+    flash('success', 'Comment updated.');
+    redirect($quizPath . '#question-discussion-' . $questionIdInt);
+}
+
+function quizzes_question_comment_delete(string $id, string $quizId, string $questionId, string $commentId): void
+{
+    csrf_check();
+
+    $subjectId = (int) $id;
+    $quizIdInt = (int) $quizId;
+    $questionIdInt = (int) $questionId;
+    $commentIdInt = (int) $commentId;
+
+    quizzes_resolve_readable_subject_or_abort($subjectId);
+    $quiz = quizzes_find_subject_published($quizIdInt, $subjectId);
+    if (!$quiz) {
+        abort(404, 'Quiz not found.');
+    }
+
+    if (!quizzes_find_question_for_quiz($quizIdInt, $questionIdInt)) {
+        abort(404, 'Question not found.');
+    }
+
+    $quizPath = quizzes_quiz_path($subjectId, $quizIdInt);
+    $comment = comments_find_target_comment($commentIdInt, 'quiz_question', $questionIdInt);
+    if (!$comment) {
+        abort(404, 'Comment not found.');
+    }
+
+    if (!quizzes_comment_can_delete($quiz, $comment)) {
+        abort(403, 'You do not have permission to delete this comment.');
+    }
+
+    if (!comments_delete_by_id($commentIdInt)) {
+        flash('error', 'Unable to delete this comment.');
+        redirect($quizPath . '#question-discussion-' . $questionIdInt);
+    }
+
+    flash('success', 'Comment deleted.');
+    redirect($quizPath . '#question-discussion-' . $questionIdInt);
 }

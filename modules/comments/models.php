@@ -6,7 +6,7 @@
 
 function comments_known_target_types(): array
 {
-    return ['resource', 'feed_post', 'kuppi_request'];
+    return ['resource', 'feed_post', 'kuppi_request', 'quiz', 'quiz_question'];
 }
 
 function comments_max_depth(): int
@@ -21,6 +21,8 @@ function comments_max_depth_for_target(string $targetType): int
         'feed_post' => 25,
         'resource' => comments_max_depth(),
         'kuppi_request' => comments_max_depth(),
+        'quiz' => comments_max_depth(),
+        'quiz_question' => comments_max_depth(),
         default => comments_max_depth(),
     };
 }
