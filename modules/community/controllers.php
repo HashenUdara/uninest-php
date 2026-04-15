@@ -124,6 +124,7 @@ function community_resolve_valid_return_to(string $returnTo, array $post, string
         $path = (string) parse_url($raw, PHP_URL_PATH);
         if (
             str_starts_with($path, '/dashboard/community')
+            || str_starts_with($path, '/dashboard/feed')
             || str_starts_with($path, '/my-posts')
             || str_starts_with($path, '/saved-posts')
         ) {

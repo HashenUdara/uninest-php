@@ -13,6 +13,7 @@ $featuredSubjects = array_slice($subjects, 0, 6);
         <?php endif; ?>
     </p>
     <div class="dash-action-row">
+        <a href="/dashboard/feed" class="btn btn-primary">Central Feed</a>
         <a href="/dashboard/subjects" class="btn btn-primary">Browse Subjects</a>
         <a href="/dashboard/quizzes" class="btn btn-outline">Quiz Hub</a>
         <a href="/dashboard/gpa" class="btn btn-outline">GPA Calculator</a>

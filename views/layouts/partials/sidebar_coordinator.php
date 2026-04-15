@@ -11,6 +11,7 @@ $isKuppiRequested = (
 ) || str_starts_with($currentPath, '/my-kuppi-requests');
 $isQuizHub = $currentPath === '/dashboard/quizzes'
     || (str_starts_with($currentPath, '/dashboard/subjects/') && str_contains($currentPath, '/quizzes'));
+$isCentralFeed = $currentPath === '/dashboard/feed';
 $isMyQuizzes = str_starts_with($currentPath, '/my-quizzes');
 $isMyQuizAnalytics = $currentPath === '/my-quiz-analytics';
 $isGpaCalculator = $currentPath === '/dashboard/gpa';
@@ -25,6 +26,7 @@ $isProfileSettings = $currentPath === '/dashboard/profile';
     <div class="sidebar-section-label">Overview</div>
     <ul>
         <li><a href="/dashboard" class="<?= is_current_url('/dashboard') ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('home') ?></span><span>Dashboard</span></a></li>
+        <li><a href="/dashboard/feed" class="<?= $isCentralFeed ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('newspaper') ?></span><span>Central Feed</span></a></li>
         <li><a href="/dashboard/subjects" class="<?= str_starts_with($currentPath, '/dashboard/subjects') ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('book-open') ?></span><span>Browse Subjects</span></a></li>
         <li><a href="/dashboard/quizzes" class="<?= $isQuizHub ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('clipboard-check') ?></span><span>Quiz Hub</span></a></li>
         <li><a href="/dashboard/community" class="<?= str_starts_with($currentPath, '/dashboard/community') ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('message-square') ?></span><span>Community Feed</span></a></li>

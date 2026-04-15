@@ -728,6 +728,7 @@ function kuppi_resolve_valid_return_to(string $returnTo, array $request): string
         $path = (string) parse_url($raw, PHP_URL_PATH);
         if (
             str_starts_with($path, '/dashboard/kuppi')
+            || str_starts_with($path, '/dashboard/feed')
             || str_starts_with($path, '/my-kuppi-requests')
         ) {
             return $raw;

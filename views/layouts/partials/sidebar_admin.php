@@ -8,6 +8,7 @@ $isBatches = str_starts_with($currentPath, '/admin/batches');
 $isModerators = str_starts_with($currentPath, '/admin/moderators');
 $isCommunityReports = str_starts_with($currentPath, '/dashboard/community/reports');
 $isCommunityFeed = str_starts_with($currentPath, '/dashboard/community') && !$isCommunityReports;
+$isCentralFeed = $currentPath === '/dashboard/feed';
 $isKuppiScheduleFlow = $currentPath === '/dashboard/kuppi/schedule' || str_starts_with($currentPath, '/dashboard/kuppi/schedule/');
 $isKuppiScheduled = str_starts_with($currentPath, '/dashboard/kuppi/scheduled');
 $isKuppiTimetable = str_starts_with($currentPath, '/dashboard/kuppi/timetable');
@@ -28,6 +29,7 @@ $isProfileSettings = $currentPath === '/dashboard/profile';
     <div class="sidebar-section-label">Overview</div>
     <ul>
         <li><a href="/dashboard" class="<?= is_current_url('/dashboard') ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('home') ?></span><span>Dashboard</span></a></li>
+        <li><a href="/dashboard/feed" class="<?= $isCentralFeed ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('newspaper') ?></span><span>Central Feed</span></a></li>
     </ul>
 
     <div class="sidebar-section-label">Approvals</div>

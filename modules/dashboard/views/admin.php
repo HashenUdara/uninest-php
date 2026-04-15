@@ -4,6 +4,7 @@
     <p class="dash-copy">Welcome back, <?= e($user['name']) ?>. Monitor onboarding approvals and keep academic content quality high across all batches.</p>
     <div class="dash-action-row">
         <a href="/admin/batch-requests" class="btn btn-primary">Review Batch Requests</a>
+        <a href="/dashboard/feed" class="btn btn-outline">Central Feed</a>
         <a href="/dashboard/quizzes" class="btn btn-outline">Quiz Hub</a>
         <a href="/admin/student-requests" class="btn btn-outline">Review Student Requests</a>
         <a href="/dashboard/quiz-requests" class="btn btn-outline">Review Quiz Requests</a>

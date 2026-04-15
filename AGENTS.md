@@ -37,6 +37,7 @@ Treat this as the project contract.
   - `comments_*` in `modules/comments/*`
   - `community_*` in `modules/community/*`
   - `kuppi_*` in `modules/kuppi/*`
+  - `feed_*` in `modules/feed/*`
   - `gpa_*` in `modules/gpa/*`
   - `profile_*` in `modules/profile/*`
 - Legacy onboarding exceptions currently allowed:
@@ -158,6 +159,7 @@ When changing DB schema:
 - Student:
   - can only see subjects from their `users.batch_id`.
   - can only view topics for subjects in their own batch.
+  - can view central feed items only from own batch.
   - can create quizzes in readable subjects.
   - can attempt approved quizzes in readable subjects.
   - can use GPA calculator for own records in own batch.
@@ -166,11 +168,13 @@ When changing DB schema:
   - can only manage data for their own batch (unless explicitly admin flow).
   - can remove students from their own batch only (no student add/edit/delete account actions).
   - can CRUD topics only for subjects in their own batch.
+  - can view central feed items only from own batch.
   - can review pending quizzes only for own-batch subjects.
   - can manage GPA grade scale only for own batch.
   - can manage own profile settings only.
 - Coordinator:
   - can CRUD topics only for subjects assigned to them in `subject_coordinators`.
+  - can view central feed items only from own batch.
   - can create quizzes in readable subjects.
   - can review pending quizzes only for assigned subjects.
   - can use GPA calculator for own records in own batch.
@@ -182,6 +186,7 @@ When changing DB schema:
   - has full batch CRUD access from admin provisioning flows.
   - has full topic CRUD access for all subjects.
   - has full quiz review and analytics access across all subjects.
+  - can view central feed only with explicit selected batch context.
   - has cross-batch GPA grade-scale management with explicit selected batch context.
   - can manage own profile settings only from profile utility routes.
 
@@ -322,6 +327,24 @@ Use `middleware_exact_role('admin')` for admin provisioning routes.
   - require `new_password` + confirmation with min length `8`,
   - reject reuse of current password.
 
+## 7.8) Central Feed Rules (Do Not Break)
+
+- Central feed is additive and read-only aggregation (no new feed storage tables).
+- Route: `GET /dashboard/feed`.
+- Data sources in v1:
+  - `feed_posts` (batch-scoped),
+  - `resources` where `status = 'published'`,
+  - `quizzes` where `status = 'approved'`,
+  - `kuppi_requests` where `status = 'open'`,
+  - `kuppi_scheduled_sessions` where `status = 'scheduled'`.
+- Scoping:
+  - non-admin users: own batch only,
+  - admin: explicit `batch_id` context required.
+- Inline interactions from central feed must reuse existing endpoints only:
+  - community like/save,
+  - kuppi vote.
+- `return_to` allow-lists for community/kuppi must continue to allow `/dashboard/feed`.
+
 ## 7.1) Admin Provisioning Route Groups
 
 - Student management:
@@ -355,6 +378,8 @@ Use `middleware_exact_role('admin')` for admin provisioning routes.
   - `GET /subjects/{id}/topics/{topicId}/edit`
   - `POST /subjects/{id}/topics/{topicId}`
   - `POST /subjects/{id}/topics/{topicId}/delete`
+- Central feed:
+  - `GET /dashboard/feed`
 - Quizzes:
   - `GET /dashboard/quizzes`
   - `GET /dashboard/subjects/{id}/quizzes`
