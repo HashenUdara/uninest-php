@@ -3057,16 +3057,58 @@
 
 .sidebar-user {
     display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+}
+
+.sidebar-user-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    display: inline-grid;
+    place-items: center;
+    border: 1px solid #dbe3f2;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #233248;
 }
 
 .sidebar-user .user-name {
-    font-size: 0.85rem;
-    font-weight: 500;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #3a4a63;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
-.sidebar-user .user-email {
-    font-size: 0.75rem;
-    color: #6f7f97;
+.sidebar-logout-btn {
+    width: 100%;
+    min-height: 38px;
+    border-radius: 12px;
+    border: 1px solid #d8e0ef;
+    background: #ffffff;
+    color: #2c3b52;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+
+.sidebar-logout-btn .ui-lucide-icon {
+    width: 15px;
+    height: 15px;
+}
+
+.sidebar-logout-btn:hover {
+    border-color: #c2d0e4;
+    background: #f8fbff;
+    color: #17263d;
 }
 
 .dashboard-stage {
@@ -3143,6 +3185,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    position: relative;
 }
 
 .topbar-link {
@@ -3175,6 +3218,16 @@
     background: #fff;
 }
 
+.topbar-profile-trigger {
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.topbar-profile-trigger:hover {
+    border-color: #c7d4e7;
+    background: #f9fbff;
+}
+
 .topbar-user-chip strong {
     display: block;
     font-size: 0.79rem;
@@ -3199,6 +3252,106 @@
     font-weight: 500;
     background: var(--dash-brand-soft);
     border: 1px solid rgba(var(--dash-brand-rgb), 0.2);
+}
+
+.topbar-profile-caret {
+    display: inline-grid;
+    place-items: center;
+    color: #6a7991;
+}
+
+.topbar-profile-caret .ui-lucide-icon {
+    width: 14px;
+    height: 14px;
+}
+
+.topbar-profile-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: min(340px, calc(100vw - 28px));
+    border: 1px solid #d8e0ee;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 22px 48px rgba(15, 23, 42, 0.16);
+    overflow: hidden;
+    z-index: 45;
+}
+
+.topbar-profile-menu-header {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    border-bottom: 1px solid #e5ebf6;
+    background: #fbfdff;
+}
+
+.topbar-profile-menu-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 999px;
+    display: inline-grid;
+    place-items: center;
+    border: 1px solid #d8e2f2;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #203148;
+}
+
+.topbar-profile-menu-header strong {
+    display: block;
+    font-size: 0.95rem;
+    line-height: 1.2;
+    color: #16263e;
+}
+
+.topbar-profile-menu-header small {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.8rem;
+    color: #60708a;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.topbar-profile-menu-actions {
+    display: grid;
+}
+
+.topbar-profile-menu-link {
+    min-height: 46px;
+    padding: 0 16px;
+    border-top: 1px solid #eef2f8;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #42536b;
+    text-decoration: none;
+    background: #fff;
+}
+
+.topbar-profile-menu-link .ui-lucide-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.topbar-profile-menu-link:hover {
+    background: #f8fbff;
+    color: #1d2d45;
+}
+
+.topbar-profile-menu-link.is-danger {
+    color: #b4233d;
+}
+
+.topbar-profile-menu-link.is-danger:hover {
+    background: #fff6f7;
+    color: #991b2f;
 }
 
 .dashboard-main {

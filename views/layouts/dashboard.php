@@ -32,6 +32,7 @@ if (!empty($nameParts[1])) {
 if ($initials === '') {
     $initials = 'U';
 }
+$avatarToneClass = ui_avatar_tone_class((string) (($user['email'] ?? '') . '-' . ($user['name'] ?? 'User')));
 ?>
 <body class="dashboard-body">
     <div class="dashboard-shell">
@@ -52,10 +53,10 @@ if ($initials === '') {
 
             <div class="sidebar-footer">
                 <div class="sidebar-user">
+                    <span class="sidebar-user-avatar <?= e($avatarToneClass) ?>" aria-hidden="true"><?= e($initials) ?></span>
                     <span class="user-name"><?= e($user['name']) ?></span>
-                    <span class="user-email"><?= e($user['email']) ?></span>
                 </div>
-                <a href="/logout" class="btn btn-sm btn-outline btn-block">Logout</a>
+                <a href="/logout" class="sidebar-logout-btn"><?= ui_lucide_icon('log-out') ?> <span>Sign Out</span></a>
             </div>
         </aside>
 
@@ -71,13 +72,26 @@ if ($initials === '') {
                 </div>
 
                 <div class="topbar-actions">
-                    <a href="/dashboard/profile" class="topbar-link">Profile</a>
-                    <a href="/logout" class="topbar-link">Logout</a>
-                    <div class="topbar-user-chip">
-                        <span class="topbar-avatar" aria-hidden="true"><?= e($initials) ?></span>
+                    <button type="button" class="topbar-user-chip topbar-profile-trigger" id="topbar-profile-toggle" aria-haspopup="menu" aria-expanded="false">
+                        <span class="topbar-avatar <?= e($avatarToneClass) ?>" aria-hidden="true"><?= e($initials) ?></span>
                         <div>
                             <strong><?= e($user['name']) ?></strong>
                             <small><?= e($roleLabel) ?></small>
+                        </div>
+                        <span class="topbar-profile-caret" aria-hidden="true"><?= ui_lucide_icon('chevron-down') ?></span>
+                    </button>
+
+                    <div class="topbar-profile-menu" id="topbar-profile-menu" role="menu" hidden>
+                        <div class="topbar-profile-menu-header">
+                            <span class="topbar-profile-menu-avatar <?= e($avatarToneClass) ?>" aria-hidden="true"><?= e($initials) ?></span>
+                            <div>
+                                <strong><?= e($user['name']) ?></strong>
+                                <small><?= e((string) ($user['email'] ?? '')) ?></small>
+                            </div>
+                        </div>
+                        <div class="topbar-profile-menu-actions">
+                            <a href="/dashboard/profile" class="topbar-profile-menu-link" role="menuitem"><?= ui_lucide_icon('settings') ?> <span>Manage Account</span></a>
+                            <a href="/logout" class="topbar-profile-menu-link is-danger" role="menuitem"><?= ui_lucide_icon('log-out') ?> <span>Sign Out</span></a>
                         </div>
                     </div>
                 </div>
@@ -118,6 +132,8 @@ if ($initials === '') {
             const sidebar = document.getElementById('app-sidebar');
             const toggle = document.getElementById('sidebar-toggle');
             const overlay = document.getElementById('dashboard-overlay');
+            const profileToggle = document.getElementById('topbar-profile-toggle');
+            const profileMenu = document.getElementById('topbar-profile-menu');
             if (!sidebar || !toggle || !overlay) return;
 
             function closeSidebar() {
@@ -147,6 +163,49 @@ if ($initials === '') {
                     closeSidebar();
                 }
             });
+
+            function closeProfileMenu() {
+                if (!profileToggle || !profileMenu) return;
+                profileMenu.hidden = true;
+                profileMenu.classList.remove('is-open');
+                profileToggle.setAttribute('aria-expanded', 'false');
+            }
+
+            function openProfileMenu() {
+                if (!profileToggle || !profileMenu) return;
+                profileMenu.hidden = false;
+                profileMenu.classList.add('is-open');
+                profileToggle.setAttribute('aria-expanded', 'true');
+            }
+
+            if (profileToggle && profileMenu) {
+                profileToggle.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                    if (profileMenu.hidden) {
+                        openProfileMenu();
+                    } else {
+                        closeProfileMenu();
+                    }
+                });
+
+                document.addEventListener('click', function (event) {
+                    const target = event.target;
+                    if (!(target instanceof Node)) return;
+                    if (profileMenu.hidden) return;
+                    if (profileMenu.contains(target) || profileToggle.contains(target)) return;
+                    closeProfileMenu();
+                });
+
+                document.addEventListener('keydown', function (event) {
+                    if (event.key === 'Escape') {
+                        closeProfileMenu();
+                    }
+                });
+
+                window.addEventListener('resize', function () {
+                    closeProfileMenu();
+                });
+            }
         })();
     </script>
 </body>
