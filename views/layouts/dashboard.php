@@ -52,10 +52,6 @@ $avatarToneClass = ui_avatar_tone_class((string) (($user['email'] ?? '') . '-' .
             ?>
 
             <div class="sidebar-footer">
-                <div class="sidebar-user">
-                    <span class="sidebar-user-avatar <?= e($avatarToneClass) ?>" aria-hidden="true"><?= e($initials) ?></span>
-                    <span class="user-name"><?= e($user['name']) ?></span>
-                </div>
                 <a href="/logout" class="sidebar-logout-btn"><?= ui_lucide_icon('log-out') ?> <span>Sign Out</span></a>
             </div>
         </aside>
