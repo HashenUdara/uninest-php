@@ -36,6 +36,7 @@ Treat this as the project contract.
   - `quizzes_*` in `modules/quizzes/*`
   - `comments_*` in `modules/comments/*`
   - `community_*` in `modules/community/*`
+  - `announcements_*` in `modules/announcements/*`
   - `kuppi_*` in `modules/kuppi/*`
   - `feed_*` in `modules/feed/*`
   - `gpa_*` in `modules/gpa/*`
@@ -110,6 +111,7 @@ Primary tables:
 - `resources` (topic-scoped, approval-based)
 - `resource_update_requests` (staged edits)
 - `resource_ratings`
+- `announcements` (batch-scoped official notices)
 - `feed_posts` (batch-scoped community posts)
 - `feed_post_likes`
 - `feed_post_saves`
@@ -160,6 +162,7 @@ When changing DB schema:
   - can only see subjects from their `users.batch_id`.
   - can only view topics for subjects in their own batch.
   - can view central feed items only from own batch.
+  - can read announcements in own batch.
   - can create quizzes in readable subjects.
   - can attempt approved quizzes in readable subjects.
   - can use GPA calculator for own records in own batch.
@@ -169,12 +172,14 @@ When changing DB schema:
   - can remove students from their own batch only (no student add/edit/delete account actions).
   - can CRUD topics only for subjects in their own batch.
   - can view central feed items only from own batch.
+  - can CRUD announcements only for own batch.
   - can review pending quizzes only for own-batch subjects.
   - can manage GPA grade scale only for own batch.
   - can manage own profile settings only.
 - Coordinator:
   - can CRUD topics only for subjects assigned to them in `subject_coordinators`.
   - can view central feed items only from own batch.
+  - can read announcements in own batch.
   - can create quizzes in readable subjects.
   - can review pending quizzes only for assigned subjects.
   - can use GPA calculator for own records in own batch.
@@ -187,6 +192,7 @@ When changing DB schema:
   - has full topic CRUD access for all subjects.
   - has full quiz review and analytics access across all subjects.
   - can view central feed only with explicit selected batch context.
+  - has cross-batch announcement CRUD with explicit selected batch context.
   - has cross-batch GPA grade-scale management with explicit selected batch context.
   - can manage own profile settings only from profile utility routes.
 
@@ -216,10 +222,9 @@ Use `middleware_exact_role('admin')` for admin provisioning routes.
 
 - Community feed posts are batch-scoped for non-admin users.
 - Feed search scope is posts only (post body + author + subject fields), not comments.
-- Pinned behavior:
-  - only `announcement` posts may be pinned,
-  - only moderator for own batch (or admin override) can pin/unpin,
-  - max pinned announcements per batch: `3`.
+- Community announcements are deprecated in v1:
+  - `announcement` is not an allowed create/update post type in community flows,
+  - announcement pin/unpin behavior is handled only in the dedicated `announcements` module.
 - Question workflow:
   - only `question` posts can be marked solved/reopened,
   - only the post author can resolve/reopen.
@@ -332,6 +337,7 @@ Use `middleware_exact_role('admin')` for admin provisioning routes.
 - Central feed is additive and read-only aggregation (no new feed storage tables).
 - Route: `GET /dashboard/feed`.
 - Data sources in v1:
+  - `announcements` (official batch notices),
   - `feed_posts` (batch-scoped),
   - `resources` where `status = 'published'`,
   - `quizzes` where `status = 'approved'`,
@@ -380,6 +386,16 @@ Use `middleware_exact_role('admin')` for admin provisioning routes.
   - `POST /subjects/{id}/topics/{topicId}/delete`
 - Central feed:
   - `GET /dashboard/feed`
+- Announcements:
+  - `GET /dashboard/announcements`
+  - `GET /dashboard/announcements/create`
+  - `POST /dashboard/announcements`
+  - `GET /dashboard/announcements/{id}`
+  - `GET /dashboard/announcements/{id}/edit`
+  - `POST /dashboard/announcements/{id}`
+  - `POST /dashboard/announcements/{id}/delete`
+  - `POST /dashboard/announcements/{id}/pin`
+  - `POST /dashboard/announcements/{id}/unpin`
 - Quizzes:
   - `GET /dashboard/quizzes`
   - `GET /dashboard/subjects/{id}/quizzes`
@@ -432,8 +448,6 @@ Use `middleware_exact_role('admin')` for admin provisioning routes.
   - `POST /dashboard/community/{id}/report`
   - `POST /dashboard/community/{id}/question/resolve`
   - `POST /dashboard/community/{id}/question/reopen`
-  - `POST /dashboard/community/{id}/pin`
-  - `POST /dashboard/community/{id}/unpin`
   - `POST /dashboard/community/{id}/comments`
   - `POST /dashboard/community/{id}/comments/{commentId}`
   - `POST /dashboard/community/{id}/comments/{commentId}/delete`

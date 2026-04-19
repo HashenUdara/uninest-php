@@ -27,6 +27,7 @@ $isGpaAnalytics = $currentPath === '/dashboard/gpa/analytics';
 $isGpaGradeScale = str_starts_with($currentPath, '/dashboard/gpa/grade-scale');
 
 $isCentralFeed = $currentPath === '/dashboard/feed';
+$isAnnouncements = str_starts_with($currentPath, '/dashboard/announcements');
 $isSubjectsBrowse = str_starts_with($currentPath, '/dashboard/subjects');
 $isCommunityReports = str_starts_with($currentPath, '/dashboard/community/reports');
 $isCommunityFeed = str_starts_with($currentPath, '/dashboard/community') && !$isCommunityReports;
@@ -45,6 +46,7 @@ $isCommunitySectionActive = $isCommunityFeed || $isMyPosts || $isSavedPosts;
     <ul>
         <li><a href="/dashboard" class="<?= is_current_url('/dashboard') ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('home') ?></span><span>Dashboard</span></a></li>
         <li><a href="/dashboard/feed" class="<?= $isCentralFeed ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('newspaper') ?></span><span>Central Feed</span></a></li>
+        <li><a href="/dashboard/announcements" class="<?= $isAnnouncements ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('megaphone') ?></span><span>Announcements</span></a></li>
     </ul>
 
     <div class="sidebar-section-label">Student Pages</div>

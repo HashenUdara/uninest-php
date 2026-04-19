@@ -71,7 +71,7 @@ $topbarSearchMinLength = function_exists('dashboard_search_min_query_length')
 
                 <form class="topbar-search topbar-search-global" role="search" id="topbar-global-search-form" method="GET" action="/dashboard/search" autocomplete="off" data-is-admin="<?= $role === 'admin' ? '1' : '0' ?>">
                     <span class="search-icon" aria-hidden="true"><?= ui_lucide_icon('search') ?></span>
-                    <input type="search" id="topbar-global-search-input" name="q" value="<?= e($topbarSearchQuery) ?>" placeholder="Search subjects, resources, quizzes, kuppi..." aria-label="Search your workspace" data-min-length="<?= (int) $topbarSearchMinLength ?>">
+                    <input type="search" id="topbar-global-search-input" name="q" value="<?= e($topbarSearchQuery) ?>" placeholder="Search announcements, subjects, resources, quizzes, kuppi..." aria-label="Search your workspace" data-min-length="<?= (int) $topbarSearchMinLength ?>">
                     <?php if ($role === 'admin'): ?>
                         <input type="hidden" id="topbar-global-search-batch-id" name="batch_id" value="<?= $topbarSearchBatchId > 0 ? (int) $topbarSearchBatchId : '' ?>">
                     <?php endif; ?>

@@ -89,6 +89,11 @@ $truncate = static function (string $text, int $length = 120): string {
         <strong>Central Feed</strong>
         <small>Catch all latest batch activity</small>
     </a>
+    <a href="/dashboard/announcements" class="student-dash-action-card">
+        <span class="student-dash-action-icon"><?= ui_lucide_icon('megaphone') ?></span>
+        <strong>Announcements</strong>
+        <small>Read official batch updates</small>
+    </a>
     <a href="/dashboard/subjects" class="student-dash-action-card">
         <span class="student-dash-action-icon"><?= ui_lucide_icon('book-open') ?></span>
         <strong>Subjects</strong>

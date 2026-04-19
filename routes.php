@@ -39,6 +39,15 @@ route('POST', '/onboarding/student/resubmit',    'onboarding_student_resubmit', 
 route('GET', '/dashboard', 'dashboard_index', ['middleware_auth', 'middleware_onboarding_complete']);
 route('GET', '/dashboard/search', 'dashboard_search_index', ['middleware_auth', 'middleware_onboarding_complete']);
 route('GET', '/dashboard/feed', 'feed_index', ['middleware_auth', 'middleware_onboarding_complete']);
+route('GET', '/dashboard/announcements', 'announcements_index', ['middleware_auth', 'middleware_onboarding_complete']);
+route('GET', '/dashboard/announcements/create', 'announcements_create_form', ['middleware_auth', 'middleware_onboarding_complete', fn() => middleware_role('moderator')]);
+route('POST', '/dashboard/announcements', 'announcements_store', ['middleware_auth', 'middleware_onboarding_complete', fn() => middleware_role('moderator')]);
+route('GET', '/dashboard/announcements/{id}', 'announcements_show', ['middleware_auth', 'middleware_onboarding_complete']);
+route('GET', '/dashboard/announcements/{id}/edit', 'announcements_edit_form', ['middleware_auth', 'middleware_onboarding_complete', fn() => middleware_role('moderator')]);
+route('POST', '/dashboard/announcements/{id}', 'announcements_update_action', ['middleware_auth', 'middleware_onboarding_complete', fn() => middleware_role('moderator')]);
+route('POST', '/dashboard/announcements/{id}/delete', 'announcements_delete_action', ['middleware_auth', 'middleware_onboarding_complete', fn() => middleware_role('moderator')]);
+route('POST', '/dashboard/announcements/{id}/pin', 'announcements_pin_action', ['middleware_auth', 'middleware_onboarding_complete', fn() => middleware_role('moderator')]);
+route('POST', '/dashboard/announcements/{id}/unpin', 'announcements_unpin_action', ['middleware_auth', 'middleware_onboarding_complete', fn() => middleware_role('moderator')]);
 route('GET', '/dashboard/profile', 'profile_index', ['middleware_auth', 'middleware_onboarding_complete']);
 route('POST', '/dashboard/profile', 'profile_update_action', ['middleware_auth', 'middleware_onboarding_complete']);
 route('POST', '/dashboard/profile/password', 'profile_password_update_action', ['middleware_auth', 'middleware_onboarding_complete']);
@@ -64,8 +73,6 @@ route('POST', '/dashboard/community/{id}/save', 'community_save_toggle', ['middl
 route('POST', '/dashboard/community/{id}/report', 'community_report_post', ['middleware_auth', 'middleware_onboarding_complete']);
 route('POST', '/dashboard/community/{id}/question/resolve', 'community_question_resolve', ['middleware_auth', 'middleware_onboarding_complete']);
 route('POST', '/dashboard/community/{id}/question/reopen', 'community_question_reopen', ['middleware_auth', 'middleware_onboarding_complete']);
-route('POST', '/dashboard/community/{id}/pin', 'community_pin_post', ['middleware_auth', 'middleware_onboarding_complete']);
-route('POST', '/dashboard/community/{id}/unpin', 'community_unpin_post', ['middleware_auth', 'middleware_onboarding_complete']);
 route('POST', '/dashboard/community/{id}/comments', 'community_comment_store', ['middleware_auth', 'middleware_onboarding_complete']);
 route('POST', '/dashboard/community/{id}/comments/{commentId}/report', 'community_comment_report', ['middleware_auth', 'middleware_onboarding_complete']);
 route('POST', '/dashboard/community/{id}/comments/{commentId}', 'community_comment_update', ['middleware_auth', 'middleware_onboarding_complete']);

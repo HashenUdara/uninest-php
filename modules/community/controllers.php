@@ -17,7 +17,6 @@ function community_storage_relative_root(): string
 function community_post_type_badge_class(string $postType): string
 {
     return match ($postType) {
-        'announcement' => 'badge-warning',
         'question' => 'badge-info',
         default => '',
     };
@@ -64,11 +63,6 @@ function community_user_can_moderate_batch(int $batchId): bool
 function community_feed_per_page(): int
 {
     return 10;
-}
-
-function community_max_pinned_announcements_per_batch(): int
-{
-    return 3;
 }
 
 function community_report_max_details_length(): int
@@ -474,15 +468,6 @@ function community_comment_can_delete(array $post, array $comment): bool
     return community_user_can_moderate_batch((int) ($post['batch_id'] ?? 0));
 }
 
-function community_post_can_pin(array $post): bool
-{
-    if ((string) ($post['post_type'] ?? '') !== 'announcement') {
-        return false;
-    }
-
-    return community_user_can_moderate_batch((int) ($post['batch_id'] ?? 0));
-}
-
 function community_post_can_resolve_question(array $post): bool
 {
     if ((string) ($post['post_type'] ?? '') !== 'question') {
@@ -742,7 +727,6 @@ function community_show(string $id): void
         'can_delete_post' => community_post_can_delete($post),
         'can_save_posts' => community_user_can_save_posts(),
         'can_resolve_question' => community_post_can_resolve_question($post),
-        'can_pin_post' => community_post_can_pin($post),
         'report_reason_options' => community_report_reason_options_with_labels(),
         'back_feed_url' => community_feed_url_for_batch((int) ($post['batch_id'] ?? 0)),
     ], 'dashboard');
@@ -1021,69 +1005,6 @@ function community_question_reopen(string $id): void
         flash('error', 'Unable to reopen this question.');
     } else {
         flash('success', 'Question reopened.');
-    }
-
-    $returnTo = community_resolve_valid_return_to(
-        (string) request_input('return_to', ''),
-        $post
-    );
-    redirect($returnTo);
-}
-
-function community_pin_post(string $id): void
-{
-    csrf_check();
-
-    $postId = (int) $id;
-    $post = community_resolve_readable_post($postId);
-    if (!$post) {
-        abort(404, 'Post not found.');
-    }
-
-    if (!community_post_can_pin($post)) {
-        abort(403, 'You do not have permission to pin this post.');
-    }
-
-    $batchId = (int) ($post['batch_id'] ?? 0);
-    if ((int) ($post['is_pinned'] ?? 0) !== 1) {
-        $pinnedCount = community_pinned_announcement_count_for_batch($batchId);
-        if ($pinnedCount >= community_max_pinned_announcements_per_batch()) {
-            flash('error', 'Only ' . community_max_pinned_announcements_per_batch() . ' announcements can be pinned at once.');
-            redirect(community_resolve_valid_return_to((string) request_input('return_to', ''), $post));
-        }
-    }
-
-    if (!community_set_post_pin_state($postId, $batchId, (int) auth_id(), true)) {
-        flash('error', 'Unable to pin this announcement.');
-    } else {
-        flash('success', 'Announcement pinned.');
-    }
-
-    $returnTo = community_resolve_valid_return_to(
-        (string) request_input('return_to', ''),
-        $post
-    );
-    redirect($returnTo);
-}
-
-function community_unpin_post(string $id): void
-{
-    csrf_check();
-
-    $postId = (int) $id;
-    $post = community_resolve_readable_post($postId);
-    if (!$post) {
-        abort(404, 'Post not found.');
-    }
-
-    if (!community_post_can_pin($post)) {
-        abort(403, 'You do not have permission to unpin this post.');
-    }
-
-    if (!community_set_post_pin_state($postId, (int) ($post['batch_id'] ?? 0), (int) auth_id(), false)) {
-        flash('error', 'Unable to unpin this announcement.');
-    } else {
-        flash('success', 'Announcement unpinned.');
     }
 
     $returnTo = community_resolve_valid_return_to(

@@ -87,6 +87,7 @@ function feed_target_url(array $item, bool $isAdmin, int $selectedBatchId): stri
     $adminBatchId = $selectedBatchId > 0 ? $selectedBatchId : $batchId;
 
     return match ($itemType) {
+        'announcement' => '/dashboard/announcements/' . $itemId . ($isAdmin && $adminBatchId > 0 ? '?batch_id=' . $adminBatchId : ''),
         'community' => '/dashboard/community/' . $itemId . ($isAdmin && $adminBatchId > 0 ? '?batch_id=' . $adminBatchId : ''),
         'resource' => '/dashboard/subjects/' . $subjectId . '/topics/' . $topicId . '/resources/' . $itemId,
         'quiz' => '/dashboard/subjects/' . $subjectId . '/quizzes/' . $itemId,
@@ -115,6 +116,7 @@ function feed_item_summary(array $item): string
     }
 
     return match ($itemType) {
+        'announcement' => 'New official announcement published.',
         'community' => 'New community post shared.',
         'resource' => 'New published resource is now available.',
         'quiz' => 'New approved quiz is ready to attempt.',

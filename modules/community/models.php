@@ -6,7 +6,7 @@
 
 function community_post_types(): array
 {
-    return ['general', 'discussion', 'question', 'announcement', 'resource_share'];
+    return ['general', 'discussion', 'question', 'resource_share'];
 }
 
 function community_post_type_label(string $postType): string
@@ -15,7 +15,6 @@ function community_post_type_label(string $postType): string
         'general' => 'General',
         'discussion' => 'Discussion',
         'question' => 'Question',
-        'announcement' => 'Announcement',
         'resource_share' => 'Resource Share',
         default => 'General',
     };
@@ -142,7 +141,7 @@ function community_posts_for_batch(
         ? 'COALESCE(lc.like_count, 0) DESC, COALESCE(cc.comment_count, 0) DESC, p.created_at DESC, p.id DESC'
         : 'p.created_at DESC, p.id DESC';
 
-    $orderBySql = "CASE WHEN p.post_type = 'announcement' AND p.is_pinned = 1 THEN 0 ELSE 1 END ASC, {$withinPartitionOrderSql}";
+    $orderBySql = $withinPartitionOrderSql;
 
     $rows = db_fetch_all(
         "SELECT p.*,
@@ -177,6 +176,7 @@ function community_posts_for_batch(
                 ON us.post_id = p.id
                AND us.user_id = ?
          WHERE p.batch_id = ?{$subjectSql}
+               AND p.post_type <> 'announcement'
                {$postTypeSql}
                {$searchSql}
          ORDER BY {$orderBySql}
@@ -212,6 +212,7 @@ function community_post_type_counts_for_batch(int $batchId, ?int $subjectId = nu
         "SELECT post_type, COUNT(*) AS cnt
          FROM feed_posts
          WHERE batch_id = ?{$subjectSql}
+           AND post_type <> 'announcement'
          GROUP BY post_type",
         $params
     );
@@ -277,6 +278,7 @@ function community_popular_posts_for_batch(
                 ON ul.post_id = p.id
                AND ul.user_id = ?
          WHERE p.batch_id = ?{$subjectSql}
+           AND p.post_type <> 'announcement'
          ORDER BY COALESCE(lc.like_count, 0) DESC, COALESCE(cc.comment_count, 0) DESC, p.created_at DESC, p.id DESC
          LIMIT {$limit}",
         $params
@@ -323,6 +325,7 @@ function community_find_post_for_batch(int $postId, int $batchId, int $viewerUse
                AND us.user_id = ?
          WHERE p.id = ?
            AND p.batch_id = ?
+           AND p.post_type <> 'announcement'
          LIMIT 1",
         [$viewerUserId, $viewerUserId, $postId, $batchId]
     );
@@ -367,6 +370,7 @@ function community_find_post_admin(int $postId, int $viewerUserId): ?array
                 ON us.post_id = p.id
                AND us.user_id = ?
          WHERE p.id = ?
+           AND p.post_type <> 'announcement'
          LIMIT 1",
         [$viewerUserId, $viewerUserId, $postId]
     );
@@ -389,6 +393,7 @@ function community_find_owned_post(int $postId, int $ownerUserId): ?array
          LEFT JOIN subjects s ON s.id = p.subject_id
          WHERE p.id = ?
            AND p.author_user_id = ?
+           AND p.post_type <> 'announcement'
          LIMIT 1",
         [$postId, $ownerUserId]
     );
@@ -473,57 +478,6 @@ function community_set_question_resolved_state(int $postId, int $authorUserId, b
     )->rowCount() > 0;
 }
 
-function community_pinned_announcement_count_for_batch(int $batchId): int
-{
-    if ($batchId <= 0) {
-        return 0;
-    }
-
-    $row = db_fetch(
-        "SELECT COUNT(*) AS cnt
-         FROM feed_posts
-         WHERE batch_id = ?
-           AND post_type = 'announcement'
-           AND is_pinned = 1",
-        [$batchId]
-    );
-
-    return (int) ($row['cnt'] ?? 0);
-}
-
-function community_set_post_pin_state(int $postId, int $batchId, int $actorUserId, bool $pinned): bool
-{
-    if ($postId <= 0 || $batchId <= 0 || $actorUserId <= 0) {
-        return false;
-    }
-
-    if ($pinned) {
-        return db_query(
-            "UPDATE feed_posts
-             SET is_pinned = 1,
-                 pinned_by_user_id = ?,
-                 pinned_at = NOW(),
-                 updated_at = NOW()
-             WHERE id = ?
-               AND batch_id = ?
-               AND post_type = 'announcement'",
-            [$actorUserId, $postId, $batchId]
-        )->rowCount() > 0;
-    }
-
-    return db_query(
-        "UPDATE feed_posts
-         SET is_pinned = 0,
-             pinned_by_user_id = NULL,
-             pinned_at = NULL,
-             updated_at = NOW()
-         WHERE id = ?
-           AND batch_id = ?
-           AND post_type = 'announcement'",
-        [$postId, $batchId]
-    )->rowCount() > 0;
-}
-
 function community_my_posts(int $ownerUserId): array
 {
     if ($ownerUserId <= 0) {
@@ -553,6 +507,7 @@ function community_my_posts(int $ownerUserId): array
             GROUP BY target_id
          ) cc ON cc.post_id = p.id
          WHERE p.author_user_id = ?
+           AND p.post_type <> 'announcement'
          ORDER BY p.updated_at DESC, p.id DESC",
         [$ownerUserId]
     );

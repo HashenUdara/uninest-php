@@ -9,6 +9,7 @@ $isModerators = str_starts_with($currentPath, '/admin/moderators');
 $isCommunityReports = str_starts_with($currentPath, '/dashboard/community/reports');
 $isCommunityFeed = str_starts_with($currentPath, '/dashboard/community') && !$isCommunityReports;
 $isCentralFeed = $currentPath === '/dashboard/feed';
+$isAnnouncements = str_starts_with($currentPath, '/dashboard/announcements');
 $isKuppiScheduleFlow = $currentPath === '/dashboard/kuppi/schedule' || str_starts_with($currentPath, '/dashboard/kuppi/schedule/');
 $isKuppiScheduled = str_starts_with($currentPath, '/dashboard/kuppi/scheduled');
 $isKuppiTimetable = str_starts_with($currentPath, '/dashboard/kuppi/timetable');
@@ -30,6 +31,7 @@ $isProfileSettings = $currentPath === '/dashboard/profile';
     <ul>
         <li><a href="/dashboard" class="<?= is_current_url('/dashboard') ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('home') ?></span><span>Dashboard</span></a></li>
         <li><a href="/dashboard/feed" class="<?= $isCentralFeed ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('newspaper') ?></span><span>Central Feed</span></a></li>
+        <li><a href="/dashboard/announcements" class="<?= $isAnnouncements ? 'active' : '' ?>"><span class="sidebar-nav-icon"><?= ui_lucide_icon('megaphone') ?></span><span>Announcements</span></a></li>
     </ul>
 
     <div class="sidebar-section-label">Approvals</div>

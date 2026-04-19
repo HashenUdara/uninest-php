@@ -10,7 +10,6 @@ $savedByViewer = (int) ($post['is_saved_by_viewer'] ?? 0) === 1;
 $commentCount = (int) ($post['comment_count'] ?? 0);
 $currentUri = (string) ($_SERVER['REQUEST_URI'] ?? ('/dashboard/community/' . $postId));
 $postType = (string) ($post['post_type'] ?? 'general');
-$isPinnedAnnouncement = $postType === 'announcement' && (int) ($post['is_pinned'] ?? 0) === 1;
 $isResolvedQuestion = $postType === 'question' && (int) ($post['is_resolved'] ?? 0) === 1;
 $viewerId = (int) auth_id();
 $canReportPost = (int) ($post['author_user_id'] ?? 0) !== $viewerId;
@@ -55,9 +54,6 @@ $reportReasonOptions = (array) ($report_reason_options ?? []);
         </div>
         <div class="community-post-badges">
             <span class="badge <?= e(community_post_type_badge_class($postType)) ?>"><?= e(community_post_type_label($postType)) ?></span>
-            <?php if ($isPinnedAnnouncement): ?>
-                <span class="badge badge-warning">Pinned</span>
-            <?php endif; ?>
             <?php if ($isResolvedQuestion): ?>
                 <span class="badge badge-info">Solved</span>
             <?php endif; ?>
@@ -107,15 +103,6 @@ $reportReasonOptions = (array) ($report_reason_options ?? []);
                     <input type="hidden" name="return_to" value="<?= e($currentUri) ?>">
                     <button type="submit" class="btn btn-sm btn-outline">
                         <?= $isResolvedQuestion ? 'Reopen' : 'Mark Solved' ?>
-                    </button>
-                </form>
-            <?php endif; ?>
-            <?php if (!empty($can_pin_post)): ?>
-                <form method="POST" action="/dashboard/community/<?= $postId ?>/<?= $isPinnedAnnouncement ? 'unpin' : 'pin' ?>">
-                    <?= csrf_field() ?>
-                    <input type="hidden" name="return_to" value="<?= e($currentUri) ?>">
-                    <button type="submit" class="btn btn-sm btn-outline">
-                        <?= $isPinnedAnnouncement ? 'Unpin' : 'Pin' ?>
                     </button>
                 </form>
             <?php endif; ?>

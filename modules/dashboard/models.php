@@ -18,6 +18,7 @@ function dashboard_search_type_options(): array
 {
     return [
         'all' => 'All',
+        'announcement' => 'Announcements',
         'subject' => 'Subjects',
         'resource' => 'Resources',
         'quiz' => 'Quizzes',
@@ -28,7 +29,7 @@ function dashboard_search_type_options(): array
 
 function dashboard_search_item_types(): array
 {
-    return ['subject', 'resource', 'quiz', 'kuppi_request', 'kuppi_scheduled'];
+    return ['announcement', 'subject', 'resource', 'quiz', 'kuppi_request', 'kuppi_scheduled'];
 }
 
 function dashboard_search_type_label(string $itemType): string
@@ -126,9 +127,33 @@ function dashboard_search_relative_time_label(string $timestamp): string
 
 function dashboard_search_build_union_sql(int $batchId, array &$params): string
 {
-    $params = [$batchId, $batchId, $batchId, $batchId, $batchId];
+    $params = [$batchId, $batchId, $batchId, $batchId, $batchId, $batchId];
 
     return "
+        SELECT
+            'announcement' AS item_type,
+            a.id AS item_id,
+            s.id AS subject_id,
+            s.code AS subject_code,
+            s.name AS subject_name,
+            a.title AS title,
+            a.body AS summary,
+            a.created_at AS event_at,
+            a.id AS sort_id,
+            NULL AS resource_topic_id,
+            NULL AS quiz_mode,
+            NULL AS quiz_question_count,
+            NULL AS quiz_duration_minutes,
+            NULL AS kuppi_session_date,
+            NULL AS kuppi_start_time,
+            NULL AS kuppi_end_time,
+            CONCAT_WS(' ', a.title, a.body, s.code, s.name) AS search_blob
+        FROM announcements a
+        LEFT JOIN subjects s ON s.id = a.subject_id
+        WHERE a.batch_id = ?
+
+        UNION ALL
+
         SELECT
             'subject' AS item_type,
             s.id AS item_id,
@@ -340,6 +365,7 @@ function dashboard_search_target_url(array $item, bool $isAdmin, int $selectedBa
     $adminBatchQuery = $isAdmin && $selectedBatchId > 0 ? '?batch_id=' . $selectedBatchId : '';
 
     return match ($itemType) {
+        'announcement' => '/dashboard/announcements/' . $itemId . $adminBatchQuery,
         'subject' => '/dashboard/subjects/' . $subjectId . '/topics',
         'resource' => '/dashboard/subjects/' . $subjectId . '/topics/' . $topicId . '/resources/' . $itemId,
         'quiz' => '/dashboard/subjects/' . $subjectId . '/quizzes/' . $itemId,
@@ -352,6 +378,7 @@ function dashboard_search_target_url(array $item, bool $isAdmin, int $selectedBa
 function dashboard_search_item_icon(string $itemType): string
 {
     return match ($itemType) {
+        'announcement' => 'megaphone',
         'subject' => 'book-open',
         'resource' => 'file-text',
         'quiz' => 'clipboard-check',
@@ -376,4 +403,3 @@ function dashboard_search_present_item(array $item, bool $isAdmin, int $selected
 
     return $item;
 }
-

@@ -32,7 +32,6 @@ $savedPosts = (array) ($posts ?? []);
             $postBody = trim((string) ($post['body'] ?? ''));
             $hasImage = trim((string) ($post['image_path'] ?? '')) !== '';
             $savedAt = (string) ($post['saved_at'] ?? $post['updated_at'] ?? $post['created_at'] ?? 'now');
-            $isPinnedAnnouncement = $postType === 'announcement' && (int) ($post['is_pinned'] ?? 0) === 1;
             $isResolvedQuestion = $postType === 'question' && (int) ($post['is_resolved'] ?? 0) === 1;
             ?>
             <article class="community-post-card social-post-card">
@@ -48,9 +47,6 @@ $savedPosts = (array) ($posts ?? []);
                     </div>
                     <div class="community-post-badges">
                         <span class="badge <?= e(community_post_type_badge_class($postType)) ?>"><?= e(community_post_type_label($postType)) ?></span>
-                        <?php if ($isPinnedAnnouncement): ?>
-                            <span class="badge badge-warning">Pinned</span>
-                        <?php endif; ?>
                         <?php if ($isResolvedQuestion): ?>
                             <span class="badge badge-info">Solved</span>
                         <?php endif; ?>

@@ -19,7 +19,7 @@ $totalResults = (int) ($counts['all'] ?? count($items));
     <div class="page-header-content">
         <p class="page-breadcrumb">Workspace / Universal Search</p>
         <h1>Universal Search</h1>
-        <p class="page-subtitle">Find subjects, resources, quizzes, and Kuppi activity from one place.</p>
+        <p class="page-subtitle">Find announcements, subjects, resources, quizzes, and Kuppi activity from one place.</p>
     </div>
     <div class="page-header-actions">
         <a href="/dashboard" class="btn btn-outline"><?= ui_lucide_icon('arrow-left') ?> Back to Dashboard</a>
@@ -103,6 +103,7 @@ $totalResults = (int) ($counts['all'] ?? count($items));
             <?php
             $itemType = (string) ($item['item_type'] ?? '');
             $badgeClass = match ($itemType) {
+                'announcement' => 'badge-warning',
                 'resource' => 'badge-info',
                 'quiz' => 'badge-warning',
                 'kuppi_request' => 'badge-info',
@@ -134,4 +135,3 @@ $totalResults = (int) ($counts['all'] ?? count($items));
         <?php endforeach; ?>
     </div>
 <?php endif; ?>
-

@@ -102,7 +102,7 @@ if ($authorName === '') {
         <ul class="community-tip-list">
             <li>Lead with one clear point so people can respond quickly.</li>
             <li>Use a matching post type and subject so your post is easy to discover.</li>
-            <li>When sharing notes or announcements, attach a photo for better reach.</li>
+            <li>When sharing notes or discussions, attach a photo for better reach.</li>
         </ul>
     </aside>
 </section>

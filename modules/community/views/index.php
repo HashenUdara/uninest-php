@@ -175,8 +175,6 @@ $buildFeedUrl = static function (array $params = []) use ($is_admin, $selectedBa
                         $postType = (string) ($post['post_type'] ?? 'general');
                         $isResolvedQuestion = $postType === 'question' && (int) ($post['is_resolved'] ?? 0) === 1;
                         $canResolveQuestion = $postType === 'question' && (int) ($post['author_user_id'] ?? 0) === $viewerId;
-                        $isPinnedAnnouncement = $postType === 'announcement' && (int) ($post['is_pinned'] ?? 0) === 1;
-                        $canPinAnnouncement = $postType === 'announcement' && community_user_can_moderate_batch((int) ($post['batch_id'] ?? 0));
                         ?>
                         <article class="community-post-card social-post-card">
                             <header class="community-post-header">
@@ -194,9 +192,6 @@ $buildFeedUrl = static function (array $params = []) use ($is_admin, $selectedBa
                                 </div>
                                 <div class="community-post-badges">
                                     <span class="badge <?= e($badgeClass) ?>"><?= e(community_post_type_label($postType)) ?></span>
-                                    <?php if ($isPinnedAnnouncement): ?>
-                                        <span class="badge badge-warning">Pinned</span>
-                                    <?php endif; ?>
                                     <?php if ($isResolvedQuestion): ?>
                                         <span class="badge badge-info">Solved</span>
                                     <?php endif; ?>
@@ -244,15 +239,6 @@ $buildFeedUrl = static function (array $params = []) use ($is_admin, $selectedBa
                                         <input type="hidden" name="return_to" value="<?= e($currentUri) ?>">
                                         <button type="submit" class="community-action-btn">
                                             <?= $isResolvedQuestion ? 'Reopen' : 'Mark Solved' ?>
-                                        </button>
-                                    </form>
-                                <?php endif; ?>
-                                <?php if ($canPinAnnouncement): ?>
-                                    <form method="POST" action="/dashboard/community/<?= $postId ?>/<?= $isPinnedAnnouncement ? 'unpin' : 'pin' ?>">
-                                        <?= csrf_field() ?>
-                                        <input type="hidden" name="return_to" value="<?= e($currentUri) ?>">
-                                        <button type="submit" class="community-action-btn">
-                                            <?= $isPinnedAnnouncement ? 'Unpin' : 'Pin' ?>
                                         </button>
                                     </form>
                                 <?php endif; ?>

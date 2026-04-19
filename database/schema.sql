@@ -500,12 +500,33 @@ CREATE TABLE IF NOT EXISTS resource_ratings (
     CONSTRAINT fk_resource_ratings_student FOREIGN KEY (student_user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS announcements (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    batch_id INT NOT NULL,
+    subject_id INT NULL,
+    author_user_id INT NULL,
+    title VARCHAR(200) NOT NULL,
+    body TEXT NOT NULL,
+    is_pinned TINYINT(1) NOT NULL DEFAULT 0,
+    pinned_by_user_id INT NULL,
+    pinned_at TIMESTAMP NULL DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_announcements_batch_pin_created (batch_id, is_pinned, created_at, id),
+    INDEX idx_announcements_batch_subject_created (batch_id, subject_id, created_at, id),
+    INDEX idx_announcements_author (author_user_id),
+    CONSTRAINT fk_announcements_batch FOREIGN KEY (batch_id) REFERENCES batches(id) ON DELETE CASCADE,
+    CONSTRAINT fk_announcements_subject FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE SET NULL,
+    CONSTRAINT fk_announcements_author FOREIGN KEY (author_user_id) REFERENCES users(id) ON DELETE SET NULL,
+    CONSTRAINT fk_announcements_pinned_by FOREIGN KEY (pinned_by_user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
 CREATE TABLE IF NOT EXISTS feed_posts (
     id INT AUTO_INCREMENT PRIMARY KEY,
     batch_id INT NOT NULL,
     subject_id INT NULL,
     author_user_id INT NULL,
-    post_type ENUM('general', 'discussion', 'question', 'announcement', 'resource_share') NOT NULL DEFAULT 'general',
+    post_type ENUM('general', 'discussion', 'question', 'resource_share') NOT NULL DEFAULT 'general',
     body TEXT NULL,
     image_path VARCHAR(255) NULL,
     image_name VARCHAR(255) NULL,

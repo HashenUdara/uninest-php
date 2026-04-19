@@ -79,7 +79,7 @@ $buildFeedUrl = static function (array $params = []) use ($is_admin, $selectedBa
             <p class="feed-social-eyebrow">Central Feed</p>
             <h1>What’s New in Your Learning Community</h1>
             <p>
-                Live stream of community posts, published resources, approved quizzes, and Kuppi activity.
+                Live stream of official announcements, community posts, published resources, approved quizzes, and Kuppi activity.
                 <?php if ($activeBatchCode !== ''): ?>
                     <span class="feed-hero-batch"><?= e($activeBatchCode) ?></span>
                     <?php if ($activeBatchName !== ''): ?>· <?= e($activeBatchName) ?><?php endif; ?>
@@ -220,6 +220,7 @@ $buildFeedUrl = static function (array $params = []) use ($is_admin, $selectedBa
                         $canVoteRequest = !empty($item['can_vote_request']);
 
                         $typeIcon = match ($itemType) {
+                            'announcement' => 'megaphone',
                             'community' => 'message-square-text',
                             'resource' => 'folder-open',
                             'quiz' => 'clipboard-check',
@@ -320,6 +321,15 @@ $buildFeedUrl = static function (array $params = []) use ($is_admin, $selectedBa
                                         <span><?= ui_lucide_icon('user-check', 'feed-mini-icon') ?> <?= (int) ($item['scheduled_host_count'] ?? 0) ?> hosts</span>
                                     </div>
                                 </div>
+                            <?php elseif ($itemType === 'announcement'): ?>
+                                <div class="feed-post-attachment feed-post-attachment--announcement">
+                                    <div class="feed-attachment-row">
+                                        <span class="feed-attachment-chip"><?= ui_lucide_icon('megaphone', 'feed-mini-icon') ?> Official Notice</span>
+                                        <?php if ($subjectCode !== ''): ?>
+                                            <span class="feed-attachment-chip"><?= ui_lucide_icon('book-open', 'feed-mini-icon') ?> <?= e($subjectCode) ?></span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
                             <?php endif; ?>
 
                             <footer class="feed-post-actions">
@@ -405,6 +415,7 @@ $buildFeedUrl = static function (array $params = []) use ($is_admin, $selectedBa
             <article class="feed-rail-card">
                 <h3>Quick Open</h3>
                 <div class="feed-quick-links">
+                    <a href="/dashboard/announcements">Announcements</a>
                     <a href="/dashboard/community">Community Feed</a>
                     <a href="/dashboard/quizzes">Quiz Hub</a>
                     <a href="/dashboard/kuppi">Requested Kuppi</a>

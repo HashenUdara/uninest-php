@@ -11,13 +11,14 @@ function feed_per_page(): int
 
 function feed_item_types(): array
 {
-    return ['community', 'resource', 'quiz', 'kuppi_request', 'kuppi_scheduled'];
+    return ['announcement', 'community', 'resource', 'quiz', 'kuppi_request', 'kuppi_scheduled'];
 }
 
 function feed_item_type_options(): array
 {
     return [
         'all' => 'All',
+        'announcement' => 'Announcements',
         'community' => 'Community',
         'resource' => 'Resources',
         'quiz' => 'Quizzes',
@@ -35,6 +36,7 @@ function feed_item_type_label(string $itemType): string
 function feed_item_type_badge_class(string $itemType): string
 {
     return match ($itemType) {
+        'announcement' => 'badge-warning',
         'community' => 'badge-info',
         'resource' => '',
         'quiz' => 'badge-warning',
@@ -102,6 +104,7 @@ function feed_build_union_sql(int $batchId, int $viewerUserId, array &$params): 
         $batchId,
         $batchId,
         $batchId,
+        $batchId,
         $viewerUserId,
         $batchId,
         $batchId,
@@ -118,7 +121,6 @@ function feed_build_union_sql(int $batchId, int $viewerUserId, array &$params): 
             COALESCE(u.name, 'Unknown User') AS actor_name,
             p.author_user_id AS actor_user_id,
             CASE p.post_type
-                WHEN 'announcement' THEN 'Announcement'
                 WHEN 'question' THEN 'Question'
                 WHEN 'discussion' THEN 'Discussion'
                 WHEN 'resource_share' THEN 'Resource Share'
@@ -157,6 +159,53 @@ function feed_build_union_sql(int $batchId, int $viewerUserId, array &$params): 
         LEFT JOIN subjects s ON s.id = p.subject_id
         LEFT JOIN users u ON u.id = p.author_user_id
         WHERE p.batch_id = ?
+          AND p.post_type <> 'announcement'
+
+        UNION ALL
+
+        SELECT
+            'announcement' AS item_type,
+            a.id AS item_id,
+            a.batch_id,
+            a.subject_id,
+            s.code AS subject_code,
+            s.name AS subject_name,
+            COALESCE(u.name, 'Unknown User') AS actor_name,
+            a.author_user_id AS actor_user_id,
+            a.title AS title,
+            COALESCE(a.body, '') AS summary,
+            a.created_at AS event_at,
+            a.id AS sort_id,
+            NULL AS community_post_type,
+            NULL AS community_like_count,
+            NULL AS community_comment_count,
+            NULL AS community_is_liked_by_viewer,
+            NULL AS community_is_saved_by_viewer,
+            NULL AS community_has_image,
+            NULL AS resource_topic_id,
+            NULL AS resource_source_type,
+            NULL AS resource_category,
+            NULL AS resource_rating_avg,
+            NULL AS resource_rating_count,
+            NULL AS resource_comment_count,
+            NULL AS quiz_mode,
+            NULL AS quiz_duration_minutes,
+            NULL AS quiz_question_count,
+            NULL AS kuppi_vote_score,
+            NULL AS kuppi_upvote_count,
+            NULL AS kuppi_downvote_count,
+            NULL AS kuppi_conductor_count,
+            NULL AS kuppi_comment_count,
+            NULL AS kuppi_viewer_vote,
+            NULL AS scheduled_session_date,
+            NULL AS scheduled_start_time,
+            NULL AS scheduled_end_time,
+            NULL AS scheduled_host_count,
+            CONCAT_WS(' ', a.title, a.body, s.code, s.name, u.name) AS search_blob
+        FROM announcements a
+        LEFT JOIN subjects s ON s.id = a.subject_id
+        LEFT JOIN users u ON u.id = a.author_user_id
+        WHERE a.batch_id = ?
 
         UNION ALL
 

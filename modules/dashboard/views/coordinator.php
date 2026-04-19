@@ -5,6 +5,7 @@
     <div class="dash-action-row">
         <a href="/coordinator/subjects" class="btn btn-primary">Manage Assigned Subjects</a>
         <a href="/dashboard/feed" class="btn btn-outline">Central Feed</a>
+        <a href="/dashboard/announcements" class="btn btn-outline">Announcements</a>
         <a href="/dashboard/quizzes" class="btn btn-outline">Quiz Hub</a>
         <a href="/dashboard/gpa" class="btn btn-outline">GPA Calculator</a>
         <a href="/dashboard/gpa/analytics" class="btn btn-outline">GPA Analytics</a>
