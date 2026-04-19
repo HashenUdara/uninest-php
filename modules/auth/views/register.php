@@ -11,15 +11,15 @@ $defaultRole = in_array($inviteRole, ['student', 'moderator'], true) ? $inviteRo
         </a>
 
         <div class="auth-quote">
-            <p>"Simply all the tools my team and I need."</p>
-            <small>Replace this testimonial text later.</small>
+            <p>"One platform for subjects, resources, quizzes, and Kuppi sessions."</p>
+            <small>Built for Sri Lankan university peer learning communities.</small>
         </div>
     </aside>
 
     <section class="auth-panel" aria-labelledby="auth-title">
         <div class="auth-panel-inner auth-register-panel">
             <h1 id="auth-title">Create your <?= e(config('app.name')) ?> account</h1>
-            <p class="auth-subtitle">Join your university batch and start peer learning sessions.</p>
+            <p class="auth-subtitle">Join your university batch and start learning, sharing, and collaborating.</p>
 
             <?php if ($error = get_flash('error')): ?>
                 <div class="alert alert-error auth-alert"><?= e($error) ?></div>

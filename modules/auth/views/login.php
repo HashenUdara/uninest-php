@@ -5,15 +5,15 @@
         </a>
 
         <div class="auth-quote">
-            <p>"Simply all the tools my team and I need."</p>
-            <small>Replace this testimonial text later.</small>
+            <p>"One platform for subjects, resources, quizzes, and Kuppi sessions."</p>
+            <small>Built for Sri Lankan university peer learning communities.</small>
         </div>
     </aside>
 
     <section class="auth-panel" aria-labelledby="auth-title">
         <div class="auth-panel-inner">
             <h1 id="auth-title">Welcome back to <?= e(config('app.name')) ?></h1>
-            <p class="auth-subtitle">Sign in to continue to your dashboard and learning workspace.</p>
+            <p class="auth-subtitle">Sign in to continue learning with your batch and campus community.</p>
 
             <?php if ($success = get_flash('success')): ?>
                 <div class="alert alert-success auth-alert"><?= e($success) ?></div>

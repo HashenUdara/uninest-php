@@ -5,15 +5,15 @@
         </a>
 
         <div class="auth-quote">
-            <p>"Simply all the tools my team and I need."</p>
-            <small>Replace this testimonial text later.</small>
+            <p>"One platform for subjects, resources, quizzes, and Kuppi sessions."</p>
+            <small>Built for Sri Lankan university peer learning communities.</small>
         </div>
     </aside>
 
     <section class="auth-panel" aria-labelledby="reset-title">
         <div class="auth-panel-inner">
             <h1 id="reset-title">Reset password</h1>
-            <p class="auth-subtitle">Create a new password for your account.</p>
+            <p class="auth-subtitle">Set a new password to secure and recover your account access.</p>
 
             <?php if ($error = get_flash('error')): ?>
                 <div class="alert alert-error auth-alert"><?= e($error) ?></div>
