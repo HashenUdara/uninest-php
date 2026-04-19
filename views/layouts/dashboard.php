@@ -33,6 +33,13 @@ if ($initials === '') {
     $initials = 'U';
 }
 $avatarToneClass = ui_avatar_tone_class((string) (($user['email'] ?? '') . '-' . ($user['name'] ?? 'User')));
+$requestPath = (string) (parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH) ?? '');
+$isSearchPage = $requestPath === '/dashboard/search';
+$topbarSearchQuery = $isSearchPage ? trim((string) request_input('q', '')) : '';
+$topbarSearchBatchId = $isSearchPage ? (int) request_input('batch_id', 0) : 0;
+$topbarSearchMinLength = function_exists('dashboard_search_min_query_length')
+    ? dashboard_search_min_query_length()
+    : 2;
 ?>
 <body class="dashboard-body">
     <div class="dashboard-shell">
@@ -62,10 +69,20 @@ $avatarToneClass = ui_avatar_tone_class((string) (($user['email'] ?? '') . '-' .
                     <?= ui_lucide_icon('menu') ?>
                 </button>
 
-                <div class="topbar-search" role="search">
+                <form class="topbar-search topbar-search-global" role="search" id="topbar-global-search-form" method="GET" action="/dashboard/search" autocomplete="off" data-is-admin="<?= $role === 'admin' ? '1' : '0' ?>">
                     <span class="search-icon" aria-hidden="true"><?= ui_lucide_icon('search') ?></span>
-                    <input type="text" placeholder="Search your workspace" aria-label="Search your workspace">
-                </div>
+                    <input type="search" id="topbar-global-search-input" name="q" value="<?= e($topbarSearchQuery) ?>" placeholder="Search subjects, resources, quizzes, kuppi..." aria-label="Search your workspace" data-min-length="<?= (int) $topbarSearchMinLength ?>">
+                    <?php if ($role === 'admin'): ?>
+                        <input type="hidden" id="topbar-global-search-batch-id" name="batch_id" value="<?= $topbarSearchBatchId > 0 ? (int) $topbarSearchBatchId : '' ?>">
+                    <?php endif; ?>
+                    <button type="submit" class="topbar-search-submit" aria-label="Search"><?= ui_lucide_icon('arrow-right') ?></button>
+
+                    <div class="topbar-search-results" id="topbar-global-search-results" hidden>
+                        <div class="topbar-search-results-state" data-search-state>Type to search...</div>
+                        <ul class="topbar-search-results-list" id="topbar-global-search-results-list"></ul>
+                        <a href="/dashboard/search" class="topbar-search-results-footer" data-search-view-all>View all results</a>
+                    </div>
+                </form>
 
                 <div class="topbar-actions">
                     <button type="button" class="topbar-user-chip topbar-profile-trigger" id="topbar-profile-toggle" aria-haspopup="menu" aria-expanded="false">
@@ -130,6 +147,260 @@ $avatarToneClass = ui_avatar_tone_class((string) (($user['email'] ?? '') . '-' .
             const overlay = document.getElementById('dashboard-overlay');
             const profileToggle = document.getElementById('topbar-profile-toggle');
             const profileMenu = document.getElementById('topbar-profile-menu');
+            const globalSearchForm = document.getElementById('topbar-global-search-form');
+            const globalSearchInput = document.getElementById('topbar-global-search-input');
+            const globalSearchBatchInput = document.getElementById('topbar-global-search-batch-id');
+            const globalSearchResults = document.getElementById('topbar-global-search-results');
+            const globalSearchResultsList = document.getElementById('topbar-global-search-results-list');
+
+            function initGlobalSearch() {
+                if (!globalSearchForm || !globalSearchInput || !globalSearchResults || !globalSearchResultsList) {
+                    return;
+                }
+
+                const isAdminSearch = globalSearchForm.dataset.isAdmin === '1';
+                const minLength = Math.max(1, Number(globalSearchInput.dataset.minLength || '2'));
+                const stateNode = globalSearchResults.querySelector('[data-search-state]');
+                const viewAllLink = globalSearchResults.querySelector('[data-search-view-all]');
+                let debounceTimer = 0;
+                let fetchToken = 0;
+
+                function currentBatchIdFromUrl() {
+                    const params = new URLSearchParams(window.location.search);
+                    const candidate = Number(params.get('batch_id') || 0);
+                    return Number.isFinite(candidate) && candidate > 0 ? candidate : 0;
+                }
+
+                function syncBatchContext() {
+                    if (!isAdminSearch || !globalSearchBatchInput) {
+                        return;
+                    }
+
+                    const batchId = currentBatchIdFromUrl();
+                    if (batchId > 0) {
+                        globalSearchBatchInput.value = String(batchId);
+                    }
+                }
+
+                function openResults() {
+                    globalSearchResults.hidden = false;
+                    globalSearchForm.classList.add('is-open');
+                }
+
+                function closeResults() {
+                    globalSearchResults.hidden = true;
+                    globalSearchForm.classList.remove('is-open');
+                }
+
+                function setState(text) {
+                    if (!stateNode) {
+                        return;
+                    }
+                    stateNode.hidden = false;
+                    stateNode.textContent = text;
+                }
+
+                function clearList() {
+                    globalSearchResultsList.innerHTML = '';
+                }
+
+                function updateViewAllLink(query) {
+                    if (!viewAllLink) {
+                        return;
+                    }
+
+                    const url = new URL('/dashboard/search', window.location.origin);
+                    if (query.trim() !== '') {
+                        url.searchParams.set('q', query.trim());
+                    }
+                    if (isAdminSearch && globalSearchBatchInput && globalSearchBatchInput.value) {
+                        url.searchParams.set('batch_id', globalSearchBatchInput.value);
+                    }
+                    viewAllLink.setAttribute('href', url.pathname + url.search);
+                }
+
+                function addResultItem(item) {
+                    const itemUrl = String(item.target_url || '/dashboard/search');
+                    const itemTitle = String(item.title || 'Untitled');
+                    const itemType = String(item.item_type_label || 'Item');
+                    const itemSubject = String(item.subject_code || '');
+                    const itemTime = String(item.event_label || '');
+
+                    const li = document.createElement('li');
+                    li.className = 'topbar-search-result-item';
+
+                    const link = document.createElement('a');
+                    link.href = itemUrl;
+                    link.className = 'topbar-search-result-link';
+
+                    const meta = document.createElement('div');
+                    meta.className = 'topbar-search-result-meta';
+
+                    const badge = document.createElement('span');
+                    badge.className = 'topbar-search-result-badge';
+                    badge.textContent = itemType;
+                    meta.appendChild(badge);
+
+                    if (itemSubject !== '') {
+                        const subject = document.createElement('span');
+                        subject.className = 'topbar-search-result-subject';
+                        subject.textContent = itemSubject;
+                        meta.appendChild(subject);
+                    }
+
+                    if (itemTime !== '') {
+                        const time = document.createElement('span');
+                        time.className = 'topbar-search-result-time';
+                        time.textContent = itemTime;
+                        meta.appendChild(time);
+                    }
+
+                    const title = document.createElement('strong');
+                    title.textContent = itemTitle;
+
+                    link.appendChild(meta);
+                    link.appendChild(title);
+                    li.appendChild(link);
+                    globalSearchResultsList.appendChild(li);
+                }
+
+                function renderItems(items) {
+                    clearList();
+                    if (!Array.isArray(items) || items.length === 0) {
+                        setState('No results found.');
+                        return;
+                    }
+
+                    if (stateNode) {
+                        stateNode.hidden = true;
+                    }
+
+                    items.forEach(addResultItem);
+                }
+
+                function fetchResults(query) {
+                    syncBatchContext();
+                    updateViewAllLink(query);
+
+                    if (query.length < minLength) {
+                        clearList();
+                        setState('Type at least ' + minLength + ' characters.');
+                        if (query.length === 0) {
+                            closeResults();
+                        } else {
+                            openResults();
+                        }
+                        return;
+                    }
+
+                    if (isAdminSearch && (!globalSearchBatchInput || !globalSearchBatchInput.value)) {
+                        clearList();
+                        setState('Select a batch context first.');
+                        openResults();
+                        return;
+                    }
+
+                    const token = ++fetchToken;
+                    clearList();
+                    setState('Searching...');
+                    openResults();
+
+                    const url = new URL('/dashboard/search', window.location.origin);
+                    url.searchParams.set('ajax', '1');
+                    url.searchParams.set('limit', '8');
+                    url.searchParams.set('q', query);
+                    if (isAdminSearch && globalSearchBatchInput && globalSearchBatchInput.value) {
+                        url.searchParams.set('batch_id', globalSearchBatchInput.value);
+                    }
+
+                    fetch(url.toString(), {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                        },
+                        credentials: 'same-origin',
+                    })
+                        .then(function (response) {
+                            if (!response.ok) {
+                                throw new Error('Search failed');
+                            }
+                            return response.json();
+                        })
+                        .then(function (payload) {
+                            if (token !== fetchToken) {
+                                return;
+                            }
+
+                            if (payload && payload.requires_batch) {
+                                clearList();
+                                setState('Select a batch context first.');
+                                return;
+                            }
+
+                            renderItems(payload && Array.isArray(payload.items) ? payload.items : []);
+                        })
+                        .catch(function () {
+                            if (token !== fetchToken) {
+                                return;
+                            }
+                            clearList();
+                            setState('Unable to load results right now.');
+                        });
+                }
+
+                globalSearchInput.addEventListener('input', function () {
+                    const query = globalSearchInput.value.trim();
+                    window.clearTimeout(debounceTimer);
+                    debounceTimer = window.setTimeout(function () {
+                        fetchResults(query);
+                    }, 200);
+                });
+
+                globalSearchInput.addEventListener('focus', function () {
+                    const query = globalSearchInput.value.trim();
+                    if (query.length > 0) {
+                        fetchResults(query);
+                        return;
+                    }
+                    updateViewAllLink('');
+                    clearList();
+                    setState('Type at least ' + minLength + ' characters.');
+                    openResults();
+                });
+
+                globalSearchForm.addEventListener('submit', function (event) {
+                    const query = globalSearchInput.value.trim();
+                    if (query.length < minLength) {
+                        event.preventDefault();
+                        clearList();
+                        setState('Type at least ' + minLength + ' characters.');
+                        openResults();
+                        return;
+                    }
+
+                    if (isAdminSearch && (!globalSearchBatchInput || !globalSearchBatchInput.value)) {
+                        event.preventDefault();
+                        clearList();
+                        setState('Select a batch context first.');
+                        openResults();
+                    }
+                });
+
+                document.addEventListener('click', function (event) {
+                    const target = event.target;
+                    if (!(target instanceof Node)) return;
+                    if (globalSearchForm.contains(target)) return;
+                    closeResults();
+                });
+
+                document.addEventListener('keydown', function (event) {
+                    if (event.key === 'Escape') {
+                        closeResults();
+                    }
+                });
+            }
+
+            initGlobalSearch();
             if (!sidebar || !toggle || !overlay) return;
 
             function closeSidebar() {

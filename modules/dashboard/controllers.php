@@ -89,6 +89,126 @@ function dashboard_index(): void
     view('dashboard::' . $viewName, $data, 'dashboard');
 }
 
+function dashboard_search_query_from_request(): string
+{
+    $query = trim((string) request_input('q', ''));
+    if (strlen($query) > dashboard_search_query_max_length()) {
+        $query = substr($query, 0, dashboard_search_query_max_length());
+    }
+
+    return $query;
+}
+
+function dashboard_search_type_from_request(): string
+{
+    $type = trim((string) request_input('type', 'all'));
+    return array_key_exists($type, dashboard_search_type_options()) ? $type : 'all';
+}
+
+function dashboard_search_is_ajax_request(): bool
+{
+    if ((int) request_input('ajax', 0) === 1) {
+        return true;
+    }
+
+    $xrw = strtolower((string) ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? ''));
+    if ($xrw === 'xmlhttprequest') {
+        return true;
+    }
+
+    $accept = strtolower((string) ($_SERVER['HTTP_ACCEPT'] ?? ''));
+    return str_contains($accept, 'application/json');
+}
+
+function dashboard_search_index(): void
+{
+    $role = (string) user_role();
+    $isAdmin = $role === 'admin';
+    $viewer = auth_user() ?? [];
+
+    $batchOptions = $isAdmin ? dashboard_search_batch_options_for_admin() : [];
+    $selectedBatchId = 0;
+    $activeBatch = null;
+
+    if ($isAdmin) {
+        $selectedBatchId = (int) request_input('batch_id', 0);
+        if ($selectedBatchId > 0) {
+            $activeBatch = dashboard_search_find_batch_option_by_id($selectedBatchId);
+            if (!$activeBatch) {
+                $selectedBatchId = 0;
+            }
+        }
+    } else {
+        $selectedBatchId = (int) ($viewer['batch_id'] ?? 0);
+        if ($selectedBatchId <= 0) {
+            abort(403, 'You are not assigned to a batch.');
+        }
+        $activeBatch = dashboard_search_find_batch_option_by_id($selectedBatchId);
+    }
+
+    $query = dashboard_search_query_from_request();
+    $selectedType = dashboard_search_type_from_request();
+    $subjectOptions = $selectedBatchId > 0
+        ? dashboard_search_subject_options_for_batch($selectedBatchId)
+        : [];
+
+    $selectedSubjectId = (int) request_input('subject_id', 0);
+    if ($selectedSubjectId > 0 && !dashboard_search_subject_exists_in_batch($selectedSubjectId, $selectedBatchId)) {
+        $selectedSubjectId = 0;
+    }
+
+    $hasSearchQuery = strlen($query) >= dashboard_search_min_query_length();
+    $subjectFilter = $selectedSubjectId > 0 ? $selectedSubjectId : null;
+    $limit = max(6, min(80, (int) request_input('limit', 24)));
+
+    $rawItems = [];
+    if ($selectedBatchId > 0 && $hasSearchQuery) {
+        $rawItems = dashboard_search_fetch_items(
+            $selectedBatchId,
+            $query,
+            $selectedType,
+            $subjectFilter,
+            $limit
+        );
+    }
+
+    $items = [];
+    foreach ($rawItems as $item) {
+        $items[] = dashboard_search_present_item($item, $isAdmin, $selectedBatchId);
+    }
+
+    $counts = dashboard_search_counts_by_type($items);
+
+    if (dashboard_search_is_ajax_request()) {
+        header('Content-Type: application/json; charset=UTF-8');
+        echo json_encode([
+            'query' => $query,
+            'requires_batch' => $isAdmin && $selectedBatchId <= 0,
+            'selected_batch_id' => $selectedBatchId,
+            'items' => $items,
+            'counts' => $counts,
+            'min_query_length' => dashboard_search_min_query_length(),
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        exit;
+    }
+
+    view('dashboard::search', [
+        'is_admin' => $isAdmin,
+        'batch_options' => $batchOptions,
+        'selected_batch_id' => $selectedBatchId,
+        'active_batch' => $activeBatch,
+        'query' => $query,
+        'selected_type' => $selectedType,
+        'selected_subject_id' => $selectedSubjectId,
+        'subject_options' => $subjectOptions,
+        'type_options' => dashboard_search_type_options(),
+        'items' => $items,
+        'counts' => $counts,
+        'min_query_length' => dashboard_search_min_query_length(),
+        'has_search_query' => $hasSearchQuery,
+    ], 'dashboard');
+}
+
 function dashboard_student_build_dashboard_data(array $user, array $subjects): array
 {
     $userId = (int) ($user['id'] ?? 0);
