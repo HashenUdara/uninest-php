@@ -13,14 +13,12 @@
 <?php
 $activeYear = (int) ($active_term['academic_year'] ?? 0);
 $activeSemester = (int) ($active_term['semester'] ?? 0);
-$activeStatus = (string) ($filters['status'] ?? '');
 $activeQuery = (string) ($filters['q'] ?? '');
 
-$buildTermUrl = static function (int $year, int $semester) use ($activeStatus, $activeQuery): string {
+$buildTermUrl = static function (int $year, int $semester) use ($activeQuery): string {
     return '/dashboard/subjects?' . http_build_query([
         'year' => $year,
         'semester' => $semester,
-        'status' => $activeStatus,
         'q' => $activeQuery,
     ]);
 };
@@ -48,17 +46,6 @@ $buildTermUrl = static function (int $year, int $semester) use ($activeStatus, $
             <input type="hidden" name="semester" value="<?= $activeSemester ?>">
 
             <div class="subjects-filter-grid subjects-filter-grid--compact">
-                <div class="form-group">
-                    <select id="status" name="status" aria-label="Status">
-                        <option value="">Status</option>
-                        <?php foreach ($status_options as $status): ?>
-                            <option value="<?= e($status) ?>" <?= ($filters['status'] ?? '') === $status ? 'selected' : '' ?>>
-                                <?= e(subjects_status_label($status)) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-
                 <div class="form-group">
                     <input type="text" id="q" name="q" value="<?= e($filters['q'] ?? '') ?>" placeholder="Search by code or name" aria-label="Search subjects">
                 </div>
@@ -92,12 +79,6 @@ $buildTermUrl = static function (int $year, int $semester) use ($activeStatus, $
     <div class="subjects-grid">
         <?php foreach ($subjects as $subject): ?>
             <?php
-            $status = (string) ($subject['status'] ?? 'upcoming');
-            $statusClass = match ($status) {
-                'in_progress' => 'badge-info',
-                'completed' => 'badge-warning',
-                default => '',
-            };
             $thumbnailTone = ui_avatar_tone_class((string) (($subject['code'] ?? '') . '-' . ($subject['name'] ?? '')));
             ?>
             <a href="/dashboard/subjects/<?= (int) $subject['id'] ?>/topics" class="subject-card-link" aria-label="Open topics for <?= e($subject['name']) ?>">
@@ -107,7 +88,6 @@ $buildTermUrl = static function (int $year, int $semester) use ($activeStatus, $
                     </div>
                     <div class="subject-card-content">
                         <div class="subject-meta">
-                            <span class="badge <?= e($statusClass) ?>"><?= e(subjects_status_label($status)) ?></span>
                             <span class="badge"><?= (int) $subject['credits'] ?> Credits</span>
                         </div>
                         <h3><?= e($subject['code']) ?> - <?= e($subject['name']) ?></h3>
@@ -127,7 +107,6 @@ $buildTermUrl = static function (int $year, int $semester) use ($activeStatus, $
     $paginationQuery = [
         'year' => (string) ($filters['year'] ?? ''),
         'semester' => (string) ($filters['semester'] ?? ''),
-        'status' => (string) ($filters['status'] ?? ''),
         'q' => (string) ($filters['q'] ?? ''),
     ];
     $buildPageUrl = static function (int $targetPage) use ($paginationQuery): string {

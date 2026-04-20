@@ -33,7 +33,6 @@
                         <th>Subject</th>
                         <th>Year</th>
                         <th>Sem</th>
-                        <th>Status</th>
                         <th>Credits</th>
                         <th>Action</th>
                     </tr>
@@ -43,12 +42,6 @@
                         <?php
                         $avatarText = ui_initials((string) $subject['name']);
                         $avatarTone = ui_avatar_tone_class((string) (($subject['code'] ?? '') . '-' . ($subject['name'] ?? '')));
-                        $status = (string) ($subject['status'] ?? 'upcoming');
-                        $statusClass = match ($status) {
-                            'in_progress' => 'badge-info',
-                            'completed' => 'badge-warning',
-                            default => '',
-                        };
                         ?>
                         <tr>
                             <td>
@@ -66,7 +59,6 @@
                             </td>
                             <td><?= (int) ($subject['academic_year'] ?? 1) ?></td>
                             <td><?= (int) ($subject['semester'] ?? 1) ?></td>
-                            <td><span class="badge <?= e($statusClass) ?>"><?= e(subjects_status_label($status)) ?></span></td>
                             <td><?= (int) $subject['credits'] ?></td>
                             <td class="actions">
                                 <a href="/subjects/<?= (int) $subject['id'] ?>/topics" class="table-icon-btn" title="Manage topics" aria-label="Manage topics">

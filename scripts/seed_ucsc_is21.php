@@ -242,7 +242,6 @@ function seed_ucsc_is21(PDO $pdo, string $basePath): array
                 'credits' => $subject['credits'],
                 'academic_year' => $subject['academic_year'],
                 'semester' => $subject['semester'],
-                'status' => seed_subject_status((int) $subject['academic_year'], (int) $subject['semester']),
                 'created_by' => (int) $seedUsers['moderators'][0]['id'],
                 'created_at' => seed_random_datetime('-320 days', '-240 days'),
                 'updated_at' => seed_random_datetime('-30 days', '-1 days'),
@@ -1405,19 +1404,6 @@ function seed_is21_subject_catalog(): array
     ];
 }
 
-function seed_subject_status(int $academicYear, int $semester): string
-{
-    if ($academicYear === 1) {
-        return 'completed';
-    }
-
-    if ($academicYear === 2 && $semester === 1) {
-        return 'in_progress';
-    }
-
-    return 'upcoming';
-}
-
 function seed_topic_templates_for_subject(string $subjectCode, string $subjectName): array
 {
     return match ($subjectCode) {
@@ -1979,8 +1965,8 @@ function seed_insert_student_batch_request(PDO $pdo, array $row): int
 function seed_insert_subject(PDO $pdo, array $row): int
 {
     $sql = 'INSERT INTO subjects
-        (batch_id, code, name, description, credits, academic_year, semester, status, created_by, created_at, updated_at)
-        VALUES (:batch_id, :code, :name, :description, :credits, :academic_year, :semester, :status, :created_by, :created_at, :updated_at)';
+        (batch_id, code, name, description, credits, academic_year, semester, created_by, created_at, updated_at)
+        VALUES (:batch_id, :code, :name, :description, :credits, :academic_year, :semester, :created_by, :created_at, :updated_at)';
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
@@ -1991,7 +1977,6 @@ function seed_insert_subject(PDO $pdo, array $row): int
         ':credits' => $row['credits'],
         ':academic_year' => $row['academic_year'],
         ':semester' => $row['semester'],
-        ':status' => $row['status'],
         ':created_by' => $row['created_by'],
         ':created_at' => $row['created_at'],
         ':updated_at' => $row['updated_at'],

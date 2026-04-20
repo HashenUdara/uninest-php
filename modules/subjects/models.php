@@ -4,21 +4,6 @@
  * Subjects Module — Models
  */
 
-function subjects_allowed_statuses(): array
-{
-    return ['upcoming', 'in_progress', 'completed'];
-}
-
-function subjects_status_label(string $status): string
-{
-    return match ($status) {
-        'upcoming' => 'Upcoming',
-        'in_progress' => 'In Progress',
-        'completed' => 'Completed',
-        default => 'Unknown',
-    };
-}
-
 function subjects_all_admin(): array
 {
     return db_fetch_all(
@@ -139,12 +124,6 @@ function subjects_student_filters_sql(array $filters, array &$params): string
     if ($semester > 0) {
         $conditions[] = 's.semester = ?';
         $params[] = $semester;
-    }
-
-    $status = trim((string) ($filters['status'] ?? ''));
-    if ($status !== '') {
-        $conditions[] = 's.status = ?';
-        $params[] = $status;
     }
 
     $query = trim((string) ($filters['q'] ?? ''));
@@ -277,7 +256,6 @@ function subjects_create(array $data): string
         'credits' => (int) ($data['credits'] ?? 3),
         'academic_year' => (int) ($data['academic_year'] ?? 1),
         'semester' => (int) ($data['semester'] ?? 1),
-        'status' => $data['status'] ?? 'upcoming',
         'created_by' => $data['created_by'] ?? auth_id(),
     ]);
 }
@@ -315,7 +293,6 @@ function subjects_update_data(int $id, array $data): int
                  credits = ?,
                  academic_year = ?,
                  semester = ?,
-                 status = ?,
                  batch_id = ?
              WHERE id = ?",
             [
@@ -325,7 +302,6 @@ function subjects_update_data(int $id, array $data): int
                 (int) ($data['credits'] ?? 3),
                 (int) ($data['academic_year'] ?? 1),
                 (int) ($data['semester'] ?? 1),
-                $data['status'] ?? 'upcoming',
                 $targetBatchId,
                 $id,
             ]

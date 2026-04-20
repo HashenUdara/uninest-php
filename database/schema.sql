@@ -184,13 +184,11 @@ CREATE TABLE IF NOT EXISTS subjects (
     credits INT DEFAULT 3,
     academic_year TINYINT UNSIGNED NOT NULL DEFAULT 1,
     semester TINYINT UNSIGNED NOT NULL DEFAULT 1,
-    status ENUM('upcoming', 'in_progress', 'completed') NOT NULL DEFAULT 'upcoming',
     created_by INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uniq_subject_code_per_batch (batch_id, code),
     INDEX idx_subjects_batch (batch_id),
-    INDEX idx_subjects_status (status),
     CONSTRAINT fk_subjects_batch FOREIGN KEY (batch_id) REFERENCES batches(id) ON DELETE CASCADE,
     CONSTRAINT fk_subjects_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
@@ -227,6 +225,22 @@ PREPARE stmt_subjects_semester_column FROM @sql_subjects_semester_column;
 EXECUTE stmt_subjects_semester_column;
 DEALLOCATE PREPARE stmt_subjects_semester_column;
 
+SET @has_subjects_status_index = (
+    SELECT COUNT(*)
+    FROM information_schema.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'subjects'
+      AND INDEX_NAME = 'idx_subjects_status'
+);
+SET @sql_subjects_status_index_drop = IF(
+    @has_subjects_status_index > 0,
+    'ALTER TABLE subjects DROP INDEX idx_subjects_status',
+    'SELECT 1'
+);
+PREPARE stmt_subjects_status_index_drop FROM @sql_subjects_status_index_drop;
+EXECUTE stmt_subjects_status_index_drop;
+DEALLOCATE PREPARE stmt_subjects_status_index_drop;
+
 SET @has_subjects_status_column = (
     SELECT COUNT(*)
     FROM information_schema.COLUMNS
@@ -234,14 +248,14 @@ SET @has_subjects_status_column = (
       AND TABLE_NAME = 'subjects'
       AND COLUMN_NAME = 'status'
 );
-SET @sql_subjects_status_column = IF(
-    @has_subjects_status_column = 0,
-    'ALTER TABLE subjects ADD COLUMN status ENUM(''upcoming'', ''in_progress'', ''completed'') NOT NULL DEFAULT ''upcoming'' AFTER semester',
+SET @sql_subjects_status_column_drop = IF(
+    @has_subjects_status_column > 0,
+    'ALTER TABLE subjects DROP COLUMN status',
     'SELECT 1'
 );
-PREPARE stmt_subjects_status_column FROM @sql_subjects_status_column;
-EXECUTE stmt_subjects_status_column;
-DEALLOCATE PREPARE stmt_subjects_status_column;
+PREPARE stmt_subjects_status_column_drop FROM @sql_subjects_status_column_drop;
+EXECUTE stmt_subjects_status_column_drop;
+DEALLOCATE PREPARE stmt_subjects_status_column_drop;
 
 UPDATE subjects
 SET academic_year = 1
@@ -250,10 +264,6 @@ WHERE academic_year IS NULL OR academic_year < 1 OR academic_year > 4;
 UPDATE subjects
 SET semester = 1
 WHERE semester IS NULL OR semester < 1 OR semester > 2;
-
-UPDATE subjects
-SET status = 'upcoming'
-WHERE status IS NULL OR status NOT IN ('upcoming', 'in_progress', 'completed');
 
 CREATE TABLE IF NOT EXISTS topics (
     id INT AUTO_INCREMENT PRIMARY KEY,

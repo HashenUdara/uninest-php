@@ -39,7 +39,6 @@
                         <th>Subject Name</th>
                         <th>Year</th>
                         <th>Sem</th>
-                        <th>Status</th>
                         <th>Credits</th>
                         <th>Coordinators</th>
                         <th>Created By</th>
@@ -51,13 +50,6 @@
                         <?php
                         $avatarText = ui_initials((string) $subject['name']);
                         $avatarTone = ui_avatar_tone_class((string) (($subject['code'] ?? '') . '-' . ($subject['name'] ?? '')));
-                        $status = (string) ($subject['status'] ?? 'upcoming');
-                        $statusLabel = subjects_status_label($status);
-                        $statusClass = match ($status) {
-                            'in_progress' => 'badge-info',
-                            'completed' => 'badge-warning',
-                            default => '',
-                        };
                         ?>
                         <tr>
                             <?php if ($is_admin): ?>
@@ -80,7 +72,6 @@
                             </td>
                             <td><?= (int) ($subject['academic_year'] ?? 1) ?></td>
                             <td><?= (int) ($subject['semester'] ?? 1) ?></td>
-                            <td><span class="badge <?= e($statusClass) ?>"><?= e($statusLabel) ?></span></td>
                             <td><?= (int) $subject['credits'] ?></td>
                             <td><?= (int) ($subject['coordinators_count'] ?? 0) ?></td>
                             <td><?= e($subject['creator_name'] ?? 'Unknown') ?></td>

@@ -74,18 +74,6 @@
                 </select>
             </div>
 
-            <div class="form-group">
-                <label for="status">Status</label>
-                <?php $selectedStatus = old('status', 'upcoming'); ?>
-                <select id="status" name="status" required>
-                    <?php foreach (subjects_allowed_statuses() as $status): ?>
-                        <option value="<?= e($status) ?>" <?= $selectedStatus === $status ? 'selected' : '' ?>>
-                            <?= e(subjects_status_label($status)) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">Create Subject</button>
                 <a href="/subjects" class="btn btn-outline">Cancel</a>

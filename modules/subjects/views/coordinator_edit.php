@@ -6,7 +6,7 @@
     <div class="page-header-content">
         <p class="page-breadcrumb">Coordinator / Subjects</p>
         <h1>Edit Assigned Subject</h1>
-        <p class="page-subtitle">Update lifecycle and content details for your assigned subject.</p>
+        <p class="page-subtitle">Update content details for your assigned subject.</p>
     </div>
     <div class="page-header-actions">
         <a href="/subjects/<?= (int) $subject['id'] ?>/topics" class="btn btn-outline">Manage Topics</a>
@@ -62,18 +62,6 @@
                 <select id="semester" name="semester" required>
                     <option value="1" <?= $selectedSemester === '1' ? 'selected' : '' ?>>Semester 1</option>
                     <option value="2" <?= $selectedSemester === '2' ? 'selected' : '' ?>>Semester 2</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="status">Status</label>
-                <?php $selectedStatus = old('status', (string) ($subject['status'] ?? 'upcoming')); ?>
-                <select id="status" name="status" required>
-                    <?php foreach (subjects_allowed_statuses() as $status): ?>
-                        <option value="<?= e($status) ?>" <?= $selectedStatus === $status ? 'selected' : '' ?>>
-                            <?= e(subjects_status_label($status)) ?>
-                        </option>
-                    <?php endforeach; ?>
                 </select>
             </div>
 

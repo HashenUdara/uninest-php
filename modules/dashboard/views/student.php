@@ -265,17 +265,10 @@ $truncate = static function (string $text, int $length = 120): string {
                 $subjectCode = trim((string) ($subject['code'] ?? 'SUBJECT'));
                 $subjectName = trim((string) ($subject['name'] ?? 'Untitled Subject'));
                 $subjectDescription = trim((string) ($subject['description'] ?? ''));
-                $subjectStatus = (string) ($subject['status'] ?? 'upcoming');
-                $statusClass = match ($subjectStatus) {
-                    'in_progress' => 'badge-info',
-                    'completed' => 'badge-warning',
-                    default => '',
-                };
                 ?>
                 <a href="/dashboard/subjects/<?= $subjectId ?>/topics" class="student-dash-subject-card">
                     <div class="student-dash-subject-head">
                         <span class="badge"><?= e($subjectCode) ?></span>
-                        <span class="badge <?= e($statusClass) ?>"><?= e(subjects_status_label($subjectStatus)) ?></span>
                     </div>
                     <h3><?= e($subjectName) ?></h3>
                     <p><?= e($subjectDescription !== '' ? $truncate($subjectDescription, 110) : 'Description will be added by your moderator.') ?></p>

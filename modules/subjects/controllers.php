@@ -4,11 +4,6 @@
  * Subjects Module — Controllers
  */
 
-function subjects_is_valid_status(string $status): bool
-{
-    return in_array($status, subjects_allowed_statuses(), true);
-}
-
 function subjects_resolve_manageable_subject(int $subjectId): ?array
 {
     if (user_role() === 'admin') {
@@ -62,7 +57,6 @@ function subjects_store(): void
     $credits = (int) request_input('credits', 3);
     $academicYear = (int) request_input('academic_year', 1);
     $semester = (int) request_input('semester', 1);
-    $status = trim((string) request_input('status', 'upcoming'));
     $batchId = $isAdmin ? (int) request_input('batch_id', 0) : (int) (auth_user()['batch_id'] ?? 0);
 
     $errors = [];
@@ -71,7 +65,6 @@ function subjects_store(): void
     if ($credits < 1 || $credits > 10) $errors[] = 'Credits must be between 1 and 10.';
     if ($academicYear < 1 || $academicYear > 4) $errors[] = 'Academic year must be between 1 and 4.';
     if ($semester < 1 || $semester > 2) $errors[] = 'Semester must be between 1 and 2.';
-    if (!subjects_is_valid_status($status)) $errors[] = 'Subject status is invalid.';
 
     if ($batchId <= 0) {
         $errors[] = 'A valid batch is required.';
@@ -100,7 +93,6 @@ function subjects_store(): void
         'credits' => $credits,
         'academic_year' => $academicYear,
         'semester' => $semester,
-        'status' => $status,
     ]);
 
     clear_old_input();
@@ -145,7 +137,6 @@ function subjects_update_action(string $id): void
     $credits = (int) request_input('credits', 3);
     $academicYear = (int) request_input('academic_year', 1);
     $semester = (int) request_input('semester', 1);
-    $status = trim((string) request_input('status', 'upcoming'));
     $batchId = $isAdmin ? (int) request_input('batch_id', 0) : (int) $subject['batch_id'];
 
     $errors = [];
@@ -154,7 +145,6 @@ function subjects_update_action(string $id): void
     if ($credits < 1 || $credits > 10) $errors[] = 'Credits must be between 1 and 10.';
     if ($academicYear < 1 || $academicYear > 4) $errors[] = 'Academic year must be between 1 and 4.';
     if ($semester < 1 || $semester > 2) $errors[] = 'Semester must be between 1 and 2.';
-    if (!subjects_is_valid_status($status)) $errors[] = 'Subject status is invalid.';
 
     if ($batchId <= 0) {
         $errors[] = 'A valid batch is required.';
@@ -183,7 +173,6 @@ function subjects_update_action(string $id): void
         'credits' => $credits,
         'academic_year' => $academicYear,
         'semester' => $semester,
-        'status' => $status,
     ]);
 
     clear_old_input();
@@ -321,7 +310,6 @@ function subjects_coordinator_update_action(string $id): void
     $credits = (int) request_input('credits', 3);
     $academicYear = (int) request_input('academic_year', 1);
     $semester = (int) request_input('semester', 1);
-    $status = trim((string) request_input('status', 'upcoming'));
     $batchId = (int) $subject['batch_id'];
 
     $errors = [];
@@ -330,7 +318,6 @@ function subjects_coordinator_update_action(string $id): void
     if ($credits < 1 || $credits > 10) $errors[] = 'Credits must be between 1 and 10.';
     if ($academicYear < 1 || $academicYear > 4) $errors[] = 'Academic year must be between 1 and 4.';
     if ($semester < 1 || $semester > 2) $errors[] = 'Semester must be between 1 and 2.';
-    if (!subjects_is_valid_status($status)) $errors[] = 'Subject status is invalid.';
     if ($code !== '' && subjects_code_exists_in_batch($code, $batchId, $subjectId)) {
         $errors[] = 'A subject with this code already exists in your batch.';
     }
@@ -349,7 +336,6 @@ function subjects_coordinator_update_action(string $id): void
         'credits' => $credits,
         'academic_year' => $academicYear,
         'semester' => $semester,
-        'status' => $status,
     ]);
 
     clear_old_input();
@@ -361,7 +347,6 @@ function subjects_student_list(): void
 {
     $batchId = (int) (auth_user()['batch_id'] ?? 0);
     $termTabs = subjects_terms_for_batch($batchId);
-    $statusOptions = subjects_allowed_statuses();
     $latestTerm = !empty($termTabs)
         ? [
             'academic_year' => (int) $termTabs[0]['academic_year'],
@@ -371,7 +356,6 @@ function subjects_student_list(): void
 
     $yearRaw = trim((string) request_input('year', ''));
     $semesterRaw = trim((string) request_input('semester', ''));
-    $statusRaw = trim((string) request_input('status', ''));
     $queryRaw = trim((string) request_input('q', ''));
 
     $requestedYear = ctype_digit($yearRaw) ? (int) $yearRaw : null;
@@ -396,13 +380,11 @@ function subjects_student_list(): void
 
     $yearFilter = $activeTerm['academic_year'] ?? null;
     $semesterFilter = $activeTerm['semester'] ?? null;
-    $statusFilter = in_array($statusRaw, $statusOptions, true) ? $statusRaw : null;
     $queryFilter = substr($queryRaw, 0, 80);
 
     $filters = [
         'year' => $yearFilter,
         'semester' => $semesterFilter,
-        'status' => $statusFilter,
         'q' => $queryFilter,
     ];
 
@@ -420,11 +402,9 @@ function subjects_student_list(): void
         'subjects' => $subjects,
         'term_tabs' => $termTabs,
         'active_term' => $activeTerm,
-        'status_options' => $statusOptions,
         'filters' => [
             'year' => $yearFilter !== null ? (string) $yearFilter : '',
             'semester' => $semesterFilter !== null ? (string) $semesterFilter : '',
-            'status' => $statusFilter ?? '',
             'q' => $queryFilter,
         ],
         'total_subjects' => $totalSubjects,
