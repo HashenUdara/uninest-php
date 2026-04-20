@@ -17,6 +17,15 @@ $locationType = (string) ($session['location_type'] ?? 'physical');
 $locationValue = $locationType === 'online'
     ? (string) ($session['meeting_link'] ?? '')
     : (string) ($session['location_text'] ?? '');
+$meetingJoinUrl = '';
+if ($locationType === 'online') {
+    $meetingLink = trim((string) ($session['meeting_link'] ?? ''));
+    if ($meetingLink !== '') {
+        $meetingJoinUrl = preg_match('#^https?://#i', $meetingLink) === 1
+            ? $meetingLink
+            : 'https://' . ltrim($meetingLink, '/');
+    }
+}
 ?>
 
 <div class="page-header">
@@ -133,6 +142,11 @@ $locationValue = $locationType === 'online'
                 <li><span>Time</span><strong><?= e(substr((string) ($session['start_time'] ?? ''), 0, 5)) ?> - <?= e(substr((string) ($session['end_time'] ?? ''), 0, 5)) ?></strong></li>
                 <li><span>Location</span><strong><?= e($locationValue !== '' ? $locationValue : 'TBD') ?></strong></li>
             </ul>
+            <?php if ($meetingJoinUrl !== ''): ?>
+                <a href="<?= e($meetingJoinUrl) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="width:100%;margin-top:12px;">
+                    <?= ui_lucide_icon('external-link') ?> Join Online Session
+                </a>
+            <?php endif; ?>
         </article>
 
         <?php if (trim((string) ($session['notes'] ?? '')) !== ''): ?>
