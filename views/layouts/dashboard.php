@@ -41,7 +41,7 @@ $topbarSearchMinLength = function_exists('dashboard_search_min_query_length')
     ? dashboard_search_min_query_length()
     : 2;
 ?>
-<body class="dashboard-body">
+<body class="dashboard-body dashboard-role-<?= e($role) ?>">
     <div class="dashboard-shell">
         <aside class="sidebar" id="app-sidebar" aria-label="Dashboard navigation">
             <div class="sidebar-header">
