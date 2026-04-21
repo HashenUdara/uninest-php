@@ -48,7 +48,7 @@ $truncate = static function (string $text, int $length = 120): string {
 };
 ?>
 
-<section class="student-dash-hero">
+<section class="student-dash-hero role-hero role-hero--student">
     <div class="student-dash-hero-main">
         <p class="student-dash-eyebrow">Student Dashboard</p>
         <h1>Stay on track with your batch goals.</h1>

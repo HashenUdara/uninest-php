@@ -3910,42 +3910,56 @@
 }
 
 .student-dash-hero {
-    border: 1px solid #c9d4ea;
+    --role-hero-gradient: linear-gradient(122deg, rgba(8, 12, 34, 0.82) 0%, rgba(27, 21, 88, 0.72) 48%, rgba(41, 13, 102, 0.66) 100%);
+    --role-hero-border: rgba(99, 119, 210, 0.46);
+    --role-hero-shadow: 0 18px 38px rgba(19, 24, 55, 0.24);
+    border: 1px solid var(--role-hero-border);
     border-radius: 18px;
-    background:
-        linear-gradient(118deg, rgba(8, 12, 32, 0.74) 0%, rgba(22, 17, 72, 0.67) 52%, rgba(36, 12, 88, 0.54) 100%),
-        url("../img/bg.jpeg");
+    background: var(--role-hero-gradient), url("../img/bg.jpeg");
     background-size: cover;
-    background-position: center;
+    background-position: center center;
     padding: 20px;
     display: grid;
     grid-template-columns: minmax(0, 1.65fr) minmax(280px, 1fr);
     gap: 14px;
-    box-shadow: 0 18px 38px rgba(20, 28, 52, 0.2);
+    box-shadow: var(--role-hero-shadow);
+}
+
+.role-hero {
+    position: relative;
+    overflow: hidden;
+}
+
+.role-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 10% 10%, rgba(255, 255, 255, 0.14), transparent 45%);
+    pointer-events: none;
 }
 
 .role-hero.role-hero--coordinator {
-    background:
-        linear-gradient(118deg, rgba(6, 16, 46, 0.75) 0%, rgba(18, 23, 86, 0.68) 52%, rgba(25, 47, 118, 0.56) 100%),
-        url("../img/bg.jpeg");
-    background-size: cover;
-    background-position: center;
+    --role-hero-gradient: linear-gradient(122deg, rgba(8, 23, 40, 0.84) 0%, rgba(12, 60, 89, 0.74) 50%, rgba(34, 83, 141, 0.68) 100%);
+    --role-hero-border: rgba(74, 160, 198, 0.52);
+    --role-hero-shadow: 0 18px 38px rgba(10, 38, 71, 0.28);
 }
 
 .role-hero.role-hero--moderator {
-    background:
-        linear-gradient(118deg, rgba(10, 20, 38, 0.78) 0%, rgba(28, 34, 86, 0.68) 52%, rgba(39, 30, 112, 0.58) 100%),
-        url("../img/bg.jpeg");
-    background-size: cover;
-    background-position: center;
+    --role-hero-gradient: linear-gradient(122deg, rgba(31, 23, 14, 0.86) 0%, rgba(72, 41, 18, 0.75) 48%, rgba(126, 62, 25, 0.66) 100%);
+    --role-hero-border: rgba(214, 136, 72, 0.5);
+    --role-hero-shadow: 0 18px 38px rgba(66, 33, 15, 0.28);
 }
 
 .role-hero.role-hero--admin {
-    background:
-        linear-gradient(118deg, rgba(22, 16, 43, 0.78) 0%, rgba(44, 18, 94, 0.7) 52%, rgba(24, 40, 122, 0.58) 100%),
-        url("../img/bg.jpeg");
-    background-size: cover;
-    background-position: center;
+    --role-hero-gradient: linear-gradient(122deg, rgba(38, 15, 30, 0.88) 0%, rgba(92, 21, 64, 0.78) 44%, rgba(35, 40, 110, 0.7) 100%);
+    --role-hero-border: rgba(211, 102, 157, 0.54);
+    --role-hero-shadow: 0 18px 38px rgba(60, 18, 49, 0.3);
+}
+
+.role-hero.role-hero--student {
+    --role-hero-gradient: linear-gradient(122deg, rgba(8, 12, 34, 0.82) 0%, rgba(27, 21, 88, 0.72) 48%, rgba(41, 13, 102, 0.66) 100%);
+    --role-hero-border: rgba(99, 119, 210, 0.46);
+    --role-hero-shadow: 0 18px 38px rgba(19, 24, 55, 0.24);
 }
 
 .student-dash-hero-main {
